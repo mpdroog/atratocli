@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4D6F3AB316CFE05000557DC1 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D6F3AB216CFE05000557DC1 /* main.c */; };
 		4D6F3AB516CFE05000557DC1 /* AtratoCLI.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */; };
+		4D6F3ABC16CFE12200557DC1 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */; };
+		4D6F3ABF16CFE30400557DC1 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D6F3ABD16CFE30400557DC1 /* jsmn.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +30,9 @@
 		4D6F3AAE16CFE05000557DC1 /* AtratoCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AtratoCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D6F3AB216CFE05000557DC1 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = AtratoCLI.1; sourceTree = "<group>"; };
+		4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+		4D6F3ABD16CFE30400557DC1 /* jsmn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jsmn.c; sourceTree = "<group>"; };
+		4D6F3ABE16CFE30400557DC1 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D6F3ABC16CFE12200557DC1 /* libcurl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +50,7 @@
 		4D6F3AA316CFE05000557DC1 = {
 			isa = PBXGroup;
 			children = (
+				4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */,
 				4D6F3AB116CFE05000557DC1 /* AtratoCLI */,
 				4D6F3AAF16CFE05000557DC1 /* Products */,
 			);
@@ -60,6 +67,8 @@
 		4D6F3AB116CFE05000557DC1 /* AtratoCLI */ = {
 			isa = PBXGroup;
 			children = (
+				4D6F3ABD16CFE30400557DC1 /* jsmn.c */,
+				4D6F3ABE16CFE30400557DC1 /* jsmn.h */,
 				4D6F3AB216CFE05000557DC1 /* main.c */,
 				4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */,
 			);
@@ -117,6 +126,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D6F3AB316CFE05000557DC1 /* main.c in Sources */,
+				4D6F3ABF16CFE30400557DC1 /* jsmn.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,6 +211,7 @@
 				4D6F3ABA16CFE05000557DC1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
