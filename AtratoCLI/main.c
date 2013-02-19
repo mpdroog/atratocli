@@ -9,13 +9,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "jsmn.h"
-#include "global.h"
+
 #include "http.h"
+#include "json.h"
+#include "md5.h"
 
-#define JSMN_STRICT
-
-// -------------- Functions
+#define API_KEY "b9nIXMpr0AxBVy"
 
 int main (int argc, const char * argv[])
 {
@@ -25,40 +24,50 @@ int main (int argc, const char * argv[])
     }
         
     HttpResponse *json = http_get(API_HASH);
-    http_cleanup();
     if (json == NULL) {
+        http_cleanup();        
         return 1;
     }
-    printf("Raw response: %s\n\n", json->buffer);
+    //printf("Raw response: %s\n\n", json->buffer);
     
-    jsmn_parser parser;
-    jsmn_init(&parser);
-    
-    jsmntok_t tokens[256];
-    bzero(&tokens, sizeof(jsmntok_t)*256);
-    jsmnerr_t response = jsmn_parse(&parser, json->buffer, tokens, 256);
-    if (response != JSMN_SUCCESS) {
-        fprintf(stderr, "Failed reading JSON response");
+    json_parse(json->buffer);
+    char* hash = json_readnext("result");
+    if (hash == NULL) {
+        fprintf(stderr, "Received no hash from server");
+        http_cleanup();        
+        return 1;
+    }
+    if (hash == NULL || strlen(hash) != 32) {
+        free(hash);
+        http_cleanup();        
+        fprintf(stderr, "Received invalid hash from server");
         return 1;
     }
     
-    for (int i = 0; i < 256; i++) {
-        jsmntok_t pos = tokens[i];
-        if (pos.type == JSMN_STRING && pos.end > 0) {
-            int strsize = pos.end - pos.start;
-            char* msg = (char*) malloc(sizeof(char) * (strsize+1));
-            if (msg == NULL) {
-                fprintf(stderr, "Failed allocating memory?");
-                return 1;
-            }
-            memcpy(msg, (const void*) json->buffer + pos.start, strsize);
-            msg[strsize] = '\0';
-            printf("%s\n", msg);
-            free(msg);
-        }
-    }
+    http_post_add("username", "api@atrato.com");
+    http_post_add("timezone", "Europe/Amsterdam");
     
+    unsigned char digest[16];
+    md5_context md5;
+    md5_starts(&md5);
+    md5_update(&md5, (unsigned char*)API_KEY, strlen(API_KEY));
+    md5_update(&md5, (unsigned char*)hash, strlen(hash));
+    md5_finish(&md5, digest);    
+
+    char md5string[33];
+    for(int i = 0; i < 16; ++i) {
+        sprintf(&md5string[i*2], "%02x", (unsigned int)digest[i]);
+    }
+    printf("MD5: %s", md5string);
+    
+    http_post_add("key", md5string);
+    HttpResponse *auth = http_post(API_LOGIN);
+    printf("Raw response: %s\n\n", auth->buffer);
+    
+    http_cleanup();
+    free(hash);
     free(json);
+    free(auth);
     printf("EOF\n");
     return 0;
 }

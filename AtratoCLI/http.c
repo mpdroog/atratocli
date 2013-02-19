@@ -15,6 +15,11 @@ FILE *_cookiejar;
 /** Path on filesystem to cookiejar */
 char* _filename;
 
+/** Data to write to server */
+char* _postFields;
+/** Amount of fields */
+int _postCount;
+
 /**
  * Construct URL to request from server.
  * Warning: Don't forget to free returned URL!
@@ -63,6 +68,42 @@ void http_cleanup(void)
     free(_filename);
 }
 
+HttpResponse* http_post(const char* query)
+{
+    HttpResponse *response = malloc(sizeof(HttpResponse));
+    bzero(response, sizeof(HttpResponse));
+
+    const char *url = internal_geturl(query);
+    if (url == NULL) {
+        free(response);
+        return NULL;
+    }
+    curl_easy_setopt(_curl, CURLOPT_URL, url);
+    curl_easy_setopt(_curl, CURLOPT_USERAGENT, "Atrato CLI");
+    curl_easy_setopt(_curl, CURLOPT_COOKIEJAR, _filename);
+    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, internal_curlresponse);
+    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, response);
+    curl_easy_setopt(_curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, _postFields);
+    printf("%s", _postFields);
+    
+    CURLcode res = curl_easy_perform(_curl);
+    free((void*)url);
+    if (res != CURLE_OK) {
+        fprintf(stderr, "cURL failed: %s\n", curl_easy_strerror(res));
+        free(response);
+        return NULL;
+    }
+    if (response->len == 0) {
+        fprintf(stderr, "Zero length response from HTTP-server?");
+        free(response);
+        return NULL;
+    }
+    
+    response->buffer[response->len+1] = '\0'; // Make sure End-Of-String is given
+    return response;    
+}
+
 HttpResponse* http_get(const char* query)
 {
     HttpResponse *response = malloc(sizeof(HttpResponse));
@@ -96,6 +137,22 @@ HttpResponse* http_get(const char* query)
     return response;
 }
 
+void http_post_add(const char* key, const char* value)
+{
+    if (_postCount == 0) {
+        // TODO: Hardcoded..
+        _postFields = malloc(sizeof(char)*2096);
+        bzero((void*)_postFields, sizeof(char)*2096);
+    }
+    
+    if (_postCount != 0) {
+        strcat(_postFields, "&");
+    }
+    strcat(_postFields, key);
+    strcat(_postFields, "=");
+    strcat(_postFields, value);
+    _postCount++;
+}
 
 const char* internal_geturl(const char* query)
 {

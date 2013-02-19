@@ -16,7 +16,7 @@
 
 #include "global.h"
 
-#define API_URL "http://atrato.cc/api.php"
+#define API_URL "http://dev.ccc.atrato/api.php"
 #define API_HASH "?c=authentication&m=hash"
 #define API_LOGIN "?c=authentication&m=login"
 #define API_LIST "?c=general&m=list"
@@ -35,4 +35,8 @@ void http_cleanup(void);
  * @return HttpResponse*|NULL
  */
 HttpResponse* http_get(const char* query);
+
+HttpResponse* http_post(const char* query);
+
+void http_post_add(const char* key, const char* value);
 #endif

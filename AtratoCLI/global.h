@@ -17,5 +17,4 @@ struct HttpResponse {
 };
 typedef struct HttpResponse HttpResponse;
 
-
 #endif
