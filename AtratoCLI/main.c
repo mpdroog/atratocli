@@ -13,6 +13,7 @@
 #include "http.h"
 #include "json.h"
 #include "md5.h"
+#include "hash.h"
 
 #define API_KEY "b9nIXMpr0AxBVy"
 
@@ -46,25 +47,22 @@ int main (int argc, const char * argv[])
     
     http_post_add("username", "api@atrato.com");
     http_post_add("timezone", "Europe/Amsterdam");
-    
-    unsigned char digest[16];
-    md5_context md5;
-    md5_starts(&md5);
-    md5_update(&md5, (unsigned char*)API_KEY, strlen(API_KEY));
-    md5_update(&md5, (unsigned char*)hash, strlen(hash));
-    md5_finish(&md5, digest);    
 
-    char md5string[33];
-    for(int i = 0; i < 16; ++i) {
-        sprintf(&md5string[i*2], "%02x", (unsigned int)digest[i]);
-    }
-    printf("MD5: %s", md5string);
+    hash_md5init();
+    hash_md5add(API_KEY);
+    hash_md5add(hash);
+    char* md5string = hash_md5str();
+    //printf("MD5: %s", md5string);
     
     http_post_add("key", md5string);
     HttpResponse *auth = http_post(API_LOGIN);
     printf("Raw response: %s\n\n", auth->buffer);
+    // TODO: Validate if success
+    
+    http_post_clear();
     
     http_cleanup();
+    free(md5string);
     free(hash);
     free(json);
     free(auth);

@@ -10,6 +10,7 @@
 		4D1FA77116D2CA9F00B9008B /* http.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D1FA77016D2CA9F00B9008B /* http.c */; };
 		4D1FA77716D3632700B9008B /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D1FA77616D3632700B9008B /* json.c */; };
 		4D46931716D402D3003755EC /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D46931516D402D3003755EC /* md5.c */; };
+		4D46931E16D41A50003755EC /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D46931D16D41A50003755EC /* hash.c */; };
 		4D6F3AB316CFE05000557DC1 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D6F3AB216CFE05000557DC1 /* main.c */; };
 		4D6F3AB516CFE05000557DC1 /* AtratoCLI.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */; };
 		4D6F3ABC16CFE12200557DC1 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */; };
@@ -38,6 +39,8 @@
 		4D46931616D402D3003755EC /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
 		4D46931916D4046B003755EC /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		4D46931B16D41726003755EC /* global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
+		4D46931C16D41A46003755EC /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
+		4D46931D16D41A50003755EC /* hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hash.c; sourceTree = "<group>"; };
 		4D6F3AAE16CFE05000557DC1 /* AtratoCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AtratoCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D6F3AB216CFE05000557DC1 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = AtratoCLI.1; sourceTree = "<group>"; };
@@ -90,6 +93,8 @@
 				4D1FA77516D362CE00B9008B /* json.h */,
 				4D1FA77616D3632700B9008B /* json.c */,
 				4D46931B16D41726003755EC /* global.h */,
+				4D46931C16D41A46003755EC /* hash.h */,
+				4D46931D16D41A50003755EC /* hash.c */,
 			);
 			path = AtratoCLI;
 			sourceTree = "<group>";
@@ -149,6 +154,7 @@
 				4D1FA77116D2CA9F00B9008B /* http.c in Sources */,
 				4D1FA77716D3632700B9008B /* json.c in Sources */,
 				4D46931716D402D3003755EC /* md5.c in Sources */,
+				4D46931E16D41A50003755EC /* hash.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

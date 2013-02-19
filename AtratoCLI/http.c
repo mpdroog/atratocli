@@ -154,6 +154,12 @@ void http_post_add(const char* key, const char* value)
     _postCount++;
 }
 
+void http_post_clear(void)
+{
+    _postCount = 0;
+    bzero((void*)_postFields, sizeof(char)*2096);
+}
+
 const char* internal_geturl(const char* query)
 {
     if (256 - strlen(query) + strlen(API_URL) < 1) {

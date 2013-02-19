@@ -39,4 +39,6 @@ HttpResponse* http_get(const char* query);
 HttpResponse* http_post(const char* query);
 
 void http_post_add(const char* key, const char* value);
+
+void http_post_clear(void);
 #endif
