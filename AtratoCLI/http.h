@@ -19,7 +19,7 @@
 #define API_URL "http://dev.ccc.atrato/api.php"
 #define API_HASH "?c=authentication&m=hash"
 #define API_LOGIN "?c=authentication&m=login"
-#define API_LIST "?c=general&m=list"
+#define API_CREDENTIALS "?c=credentials&m=credentials"
 
 /**
  * Initialize module for HTTP-Requests

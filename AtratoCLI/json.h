@@ -18,7 +18,7 @@
 #define JSMN_STRICT
 
 void json_init(void);
-void json_cleanup(void);
-int json_parse(char *msg);
-char* json_readnext(char *key);
+int json_parse(const char *msg);
+char* json_readstring(const char *key);
+int json_readprimitive(const char *key);
 #endif

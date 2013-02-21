@@ -15,6 +15,7 @@
 		4D6F3AB516CFE05000557DC1 /* AtratoCLI.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */; };
 		4D6F3ABC16CFE12200557DC1 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */; };
 		4D6F3ABF16CFE30400557DC1 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D6F3ABD16CFE30400557DC1 /* jsmn.c */; };
+		4D7D95A116D604DA003085ED /* api.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D7D95A016D604DA003085ED /* api.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -47,6 +48,8 @@
 		4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
 		4D6F3ABD16CFE30400557DC1 /* jsmn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jsmn.c; sourceTree = "<group>"; };
 		4D6F3ABE16CFE30400557DC1 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
+		4D7D959E16D604D2003085ED /* api.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = api.h; sourceTree = "<group>"; };
+		4D7D95A016D604DA003085ED /* api.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = api.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +98,8 @@
 				4D46931B16D41726003755EC /* global.h */,
 				4D46931C16D41A46003755EC /* hash.h */,
 				4D46931D16D41A50003755EC /* hash.c */,
+				4D7D959E16D604D2003085ED /* api.h */,
+				4D7D95A016D604DA003085ED /* api.c */,
 			);
 			path = AtratoCLI;
 			sourceTree = "<group>";
@@ -155,6 +160,7 @@
 				4D1FA77716D3632700B9008B /* json.c in Sources */,
 				4D46931716D402D3003755EC /* md5.c in Sources */,
 				4D46931E16D41A50003755EC /* hash.c in Sources */,
+				4D7D95A116D604DA003085ED /* api.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

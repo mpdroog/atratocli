@@ -85,7 +85,6 @@ HttpResponse* http_post(const char* query)
     curl_easy_setopt(_curl, CURLOPT_WRITEDATA, response);
     curl_easy_setopt(_curl, CURLOPT_POST, 1L);
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, _postFields);
-    printf("%s", _postFields);
     
     CURLcode res = curl_easy_perform(_curl);
     free((void*)url);
