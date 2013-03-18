@@ -17,4 +17,6 @@ struct HttpResponse {
 };
 typedef struct HttpResponse HttpResponse;
 
+#define VERSION "0.1"
+
 #endif

@@ -6,14 +6,14 @@
 //  Copyright 2013 Rootdev Enterprise. All rights reserved.
 //
 
+#include <unistd.h>
 #include <stdio.h>
+
 #include "api.h"
 #include "http.h"
 
 int main (int argc, const char * argv[])
 {
-    // TODO: Add verbose/debug flag?
-    
     if (api_init() != 0) {
         printf("Failed loading API\n");
         return 1;
@@ -25,7 +25,6 @@ int main (int argc, const char * argv[])
     printf("Logged in\n");
     
     api_credential_search(API_CREDENTIALS);
-    
     api_cleanup();
     return 0;
 }

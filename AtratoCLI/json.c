@@ -7,10 +7,11 @@
 //
 
 #include "json.h"
+#define JSON_TOKENS 1024
 
-jsmn_parser _parser;
+jsmn_parser _parser = {};
 const char *_lastmsg = NULL;
-jsmntok_t _tokens[256];
+jsmntok_t _tokens[JSON_TOKENS];
 
 void json_init(void) 
 {
@@ -20,22 +21,35 @@ void json_init(void)
 
 int json_parse(const char *msg)
 {
-    // TODO: 256 max
-    bzero(&_tokens, sizeof(jsmntok_t)*256);
-    jsmnerr_t response = jsmn_parse(&_parser, msg, _tokens, 256);
+    // TODO: tokens max
+    bzero(&_tokens, sizeof(jsmntok_t)*JSON_TOKENS);
+    jsmnerr_t response = jsmn_parse(&_parser, msg, _tokens, JSON_TOKENS);
+    if (response == JSMN_ERROR_NOMEM) {
+        fprintf(stderr, "JSON Token array too small");
+        return 0;
+    }
+    if (response == JSMN_ERROR_INVAL) {
+        fprintf(stderr, "JSON contains invalid tokens");
+        return 0;
+    }
+    if (response == JSMN_ERROR_PART) {
+        fprintf(stderr, "JSON is received broken");
+        return 0;
+    }
+    
     if (response != JSMN_SUCCESS) {
         fprintf(stderr, "Failed reading JSON response %d", response);
         return 0;
     }
     _lastmsg = msg;
-    return response;
+    return 1;
 }
 
 int json_readprimitive(const char *key)
 {
     int nextmatch = 0;
     // TODO: Very inefficient xD
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < JSON_TOKENS; i++) {
         jsmntok_t pos = _tokens[i];
         if (nextmatch == 1 && pos.type == JSMN_PRIMITIVE && pos.start > 0) {
             //int strsize = pos.end - pos.start;
@@ -69,8 +83,9 @@ int json_readprimitive(const char *key)
 char* json_readstring(const char *key)
 {
     int nextmatch = 0;
+
     // TODO: Very inefficient xD
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < JSON_TOKENS; i++) {
         jsmntok_t pos = _tokens[i];
         if (pos.type == JSMN_STRING && pos.end > 0) {
             // TODO: Duplicate
@@ -95,4 +110,66 @@ char* json_readstring(const char *key)
     }
     
     return NULL;
+}
+
+void json_array(void) {
+    int nextmatch = 0;
+    int end = 0;
+    int printcount = 0;
+    
+    printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
+    for (int i = 0; i < 111; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // TODO: Very inefficient xD
+    for (int i = 0; i < JSON_TOKENS; i++) {
+        jsmntok_t pos = _tokens[i];
+        // pos == JSMN_ARRAY then end = end of last string
+        if (nextmatch == 1 && end == 0) {
+            end = pos.end;
+        }
+        if (end > 0 && pos.start > end) {
+            break;
+        }
+        
+        if (pos.type == JSMN_PRIMITIVE && pos.end > 0) {
+            printcount++;
+            printf("%-30s", "NULL");
+        }
+        if (pos.type == JSMN_STRING && pos.end > 0) {
+            // TODO: Duplicate
+            int strsize = pos.end - pos.start;
+            char* msg = (char*) malloc(sizeof(char) * (strsize+1));
+            if (msg == NULL) {
+                fprintf(stderr, "Failed allocating memory?");
+                return;
+            }
+            memcpy(msg, (const void*) _lastmsg + pos.start, strsize);
+            msg[strsize] = '\0';
+            if (nextmatch == 1 && end > 0) {
+                printcount++;
+                if (printcount % 2 == 0) {
+                    char *decoded = str_replace("\\/", "/", msg);
+                    char *max = str_substr(0, 28, decoded);
+                    printf("%-30s", max);
+                    free(max);
+                    free(decoded);
+                    //printf("%-30s", msg);                    
+                }
+                
+                if (printcount % 8 == 0) {
+                    printf("\n");
+                }
+            }
+            if (strcmp(msg, "result") == 0) {
+                // Exact match, we need next values
+                nextmatch = 1;
+            }
+            //printf("%s\n", msg);
+            free(msg);
+        }
+    }
+    printf("\n");
 }

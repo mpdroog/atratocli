@@ -99,7 +99,7 @@ HttpResponse* http_post(const char* query)
         return NULL;
     }
     
-    response->buffer[response->len+1] = '\0'; // Make sure End-Of-String is given
+    response->buffer[response->pos+1] = '\0'; // Make sure End-Of-String is given
     return response;    
 }
 
@@ -132,7 +132,7 @@ HttpResponse* http_get(const char* query)
         return NULL;
     }
     
-    response->buffer[response->len+1] = '\0'; // Make sure End-Of-String is given
+    response->buffer[response->pos+1] = '\0'; // Make sure End-Of-String is given
     return response;
 }
 
@@ -179,16 +179,16 @@ static size_t internal_curlresponse(void *ptr, size_t size, size_t nmemb, void *
     
     if (needed > available) {
         // +1 to ensure memory for \0
-        void *new = realloc(response->buffer, available+needed +1);
+        void *new = realloc(response->buffer, sizeof(char) * (response->len + needed +1));
         if (new == NULL) {
             fprintf(stderr, "Failed to re-allocate more memory"); 
             return 0;
         }
-        // TODO: Dangerous, mixing stack with dynamic
         response->buffer = new;
-        response->len = response->len + needed;
+        response->len += needed;
     }
     
     memcpy((void*)&response->buffer[response->pos], ptr, needed);
+    response->pos += needed;
     return needed;
 }

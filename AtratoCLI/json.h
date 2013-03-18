@@ -14,11 +14,14 @@
 #include <stdio.h>
 
 #include "jsmn.h"
+#include "strutils.h"
 
-#define JSMN_STRICT
+//#define JSMN_STRICT
 
 void json_init(void);
 int json_parse(const char *msg);
 char* json_readstring(const char *key);
 int json_readprimitive(const char *key);
+
+void json_array(void);
 #endif

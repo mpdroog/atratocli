@@ -32,7 +32,7 @@ static int internal_checksalt(char* hash)
         http_cleanup();        
         return 1;
     }
-    if (hash == NULL || strlen(hash) != 32) {
+    if (strlen(hash) != 32) {
         free(hash);
         http_cleanup();        
         fprintf(stderr, "Received invalid hash from server");
@@ -56,7 +56,9 @@ static int internal_request(char* type, char* query)
     if (response == NULL) {
         return 1;
     }
-    json_parse(response->buffer);
+    if (json_parse(response->buffer) == 0) {
+        return 1;
+    }
     free(response);
     int error = json_readprimitive("result");
     if (error == 1) {
@@ -116,7 +118,8 @@ void api_credential_search(const char* query)
     }
     http_post_clear();
     // TODO: Return jsmn? need to return array of data
-    
+
+    json_array();
 }
 
 void api_cleanup(void) {
