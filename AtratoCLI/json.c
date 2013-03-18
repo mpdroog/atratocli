@@ -112,6 +112,55 @@ char* json_readstring(const char *key)
     return NULL;
 }
 
+void json_array_search(const char* baseName, int(*searchFn)(const char* key), int(*printFn)(const char* key, const char* value) ) {
+    int nextmatch = 0;
+    int end = 0;
+    int printcount = 0;
+    int printNextKey = 0;
+    
+    for (int i = 0; i < JSON_TOKENS; i++) {
+        jsmntok_t pos = _tokens[i];
+        // pos == JSMN_ARRAY then end = end of last string
+        if (nextmatch == 1 && end == 0) {
+            end = pos.end;
+        }
+        if (end > 0 && pos.start > end) {
+            break;
+        }
+        
+        if (pos.type == JSMN_PRIMITIVE && pos.end > 0) {
+            printcount++;
+            printf("%-30s", "NULL");
+        }
+        if (pos.type == JSMN_STRING && pos.end > 0) {
+            // TODO: Duplicate
+            int strsize = pos.end - pos.start;
+            char* msg = (char*) malloc(sizeof(char) * (strsize+1));
+            if (msg == NULL) {
+                fprintf(stderr, "Failed allocating memory?");
+                return;
+            }
+            memcpy(msg, (const void*) _lastmsg + pos.start, strsize);
+            msg[strsize] = '\0';
+            if (nextmatch == 1 && end > 0) {
+                printcount++;
+                if (printcount % 2 == 0 && printNextKey == 1) {
+                    printNextKey = 0;
+                    printFn("X", msg);
+                }
+                else if (printcount % 2 == 1) {
+                    printNextKey = searchFn(msg);
+                }
+            }
+            if (strcmp(msg, baseName) == 0) {
+                // Exact match, we need next values
+                nextmatch = 1;
+            }
+            free(msg);
+        }
+    }
+}
+
 void json_array(void) {
     int nextmatch = 0;
     int end = 0;
@@ -156,7 +205,6 @@ void json_array(void) {
                     printf("%-30s", max);
                     free(max);
                     free(decoded);
-                    //printf("%-30s", msg);                    
                 }
                 
                 if (printcount % 8 == 0) {

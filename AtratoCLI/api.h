@@ -10,7 +10,7 @@
 #define AtratoCLI_api_h
 
 int api_init(void);
-int api_login(void);
+int api_login(const char* ldapUser, const char* ldapPass);
 void api_cleanup(void);
 void api_credential_search(const char* query);
 
