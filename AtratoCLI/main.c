@@ -34,10 +34,12 @@ int main (int argc, const char * argv[])
     
     if (api_init() != 0) {
         printf("Failed loading API\n");
+        free(password);
         return 1;
     }
     if (api_login(username, password) != 0) {
         printf("Failed login\n");
+        free(password);        
         return 1;
     }
     printf("Logged in\n");

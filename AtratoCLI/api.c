@@ -17,8 +17,8 @@ static int internal_checksalt(char* hash);
 static int internal_request(char* type, char* query);
 
 static int loginstage = 0;
-static const char* _ldapUser;
-static const char* _ldapKey;
+static const char* _ldapUser = NULL;
+static const char* _ldapKey = NULL;
 
 int internal_find_key(const char* key);
 int internal_find_value(const char* key, const char* value);
@@ -117,15 +117,14 @@ void api_credential_search(const char* query)
     }
 
     // LDAP...
-    http_post_add("username", "mark");    
-    http_post_add("password", "xx");    
+    http_post_add("username", _ldapUser);    
+    http_post_add("password", _ldapKey);    
     
     http_post_add("search", "atrato");
     if (internal_request("POST", API_CREDENTIALS) == 1) {
         return;
     }
     http_post_clear();
-    // TODO: Return jsmn? need to return array of data
 
     printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
     for (int i = 0; i < 111; i++) {
@@ -165,4 +164,6 @@ int internal_find_value(const char* key, const char* value)
 
 void api_cleanup(void) {
     http_cleanup();
+    // No need to free _ldapUser
+    free((void*)_ldapKey);
 }
