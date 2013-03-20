@@ -13,7 +13,40 @@
 #include "api.h"
 #include "http.h"
 
-#define PASSWORD_LDAP_LENGTH 255
+static const char* internal_input_read(const char* msg, int required, const char* def_value, int max_size);
+static void main_credential_add(void);
+
+static const char* internal_input_read(const char* msg, int required, const char* def_value, int max_size)
+{
+    fprintf(stdout, "%s", msg);
+    if (required) {
+        fprintf(stdout, "*");
+    }
+    if (def_value != NULL) {
+        fprintf(stdout, " [%s] ", def_value);        
+    }
+    fprintf(stdout, " : ");
+    
+    char* input = malloc(sizeof(char) * max_size + 1);
+    if (input == NULL) {
+        return 0;
+    }
+    char* search = malloc(sizeof(char) * 4); // Assumption..
+    if (search == NULL) {
+        free(input);
+        return 0;
+    }
+    bzero(search, sizeof(char) * 4);
+    sprintf(search, "%%%ds", max_size);
+    
+    if (scanf(search, input) != 1) {
+        free(input);
+        free(search);
+        return 0;
+    }
+    
+    return input;
+}
 
 int main (int argc, const char* argv[])
 {
@@ -21,9 +54,10 @@ int main (int argc, const char* argv[])
     int add = 0;
     
     if (argc < 2) {
-        fprintf(stdout, "No CLI arguments\n");
-        fprintf(stdout, "-c <searchvalue> -- Search credentials\n");
-        fprintf(stdout, "-a -- Add credential\n");
+        fprintf(stdout, "atratocli, version 1.0\n\n");
+        fprintf(stdout, "usage: atratocli [-a][-c value]\n");
+        fprintf(stdout, "   c searchvalue : Search credentials\n");
+        fprintf(stdout, "   a             : Add credential\n");
         return 0;
     }
     
@@ -51,49 +85,56 @@ int main (int argc, const char* argv[])
     }
     
     char *username = getenv("USER");
-    char *password = malloc(sizeof(char) * PASSWORD_LDAP_LENGTH + 1);
-    if (username == NULL) {
-        free(password);
-        return -1;
-    }
     printf("LDAP Username: ");
     printf("%s\n", username);
-    printf("LDAP Password: ");
-    
-    if (scanf("%255s", password) != 1) {
-        free(password);
-        return -1;
-    }
+    const char* password = internal_input_read("LDAP Password", 1, NULL, 255);
+    if (password == NULL) {
+        free((void*)password);
+        return 1;
+    }    
     printf("\n");
     
     if (api_init() != 0) {
         printf("Failed loading API\n");
-        free(password);
+        free((void*)password);
         return 1;
     }
     if (api_login(username, password) != 0) {
         printf("Failed login\n");
-        free(password);        
+        free((void*)password);        
         return 1;
     }
     printf("Logged in\n");
 
     if (search != NULL) {
-        // Search for given credential
         api_credential_search(search);
     } else if (add == 1) {
-        // Add credential
-        printf("Hostname*: ");
-        printf("Website: ");
-        printf("Username*:");
-        printf("Password:");
-        printf("Comment");
-        //if (scanf("%255s", password) != 1) {
-        
+        main_credential_add();
     } else {
         fprintf(stdout, "No instruction given\n");
     }
     api_cleanup();
     return 0;
+}
+
+static void main_credential_add(void)
+{
+    const char* hostname = internal_input_read("Hostname", 1, NULL, 255);
+    const char* website = internal_input_read("Website", 0, NULL, 255);
+    const char* username = internal_input_read("Username", 1, NULL, 255);
+    const char* password = internal_input_read("Password", 1, NULL, 255);
+    const char* comment = internal_input_read("Comment", 1, NULL, 255);
+    
+    if (hostname == NULL || website == NULL || username == NULL || password == NULL || comment == NULL) {
+        goto cleanup;
+    }
+    
+    api_credential_add(hostname, website, username, password, comment);    
+cleanup:
+    free((void*)hostname);
+    free((void*)website);
+    free((void*)username);
+    free((void*)password);
+    free((void*)comment);    
 }
 

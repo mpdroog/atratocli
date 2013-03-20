@@ -162,6 +162,34 @@ int internal_find_value(const char* key, const char* value)
     return 0;
 }
 
+void api_credential_add(const char* hostname, const char* website, const char* username, const char* password, const char* comment)
+{
+    if (loginstage == 0) {
+        return;
+    }
+    
+    // LDAP...
+    http_post_add("username", _ldapUser);    
+    http_post_add("password", _ldapKey);    
+    
+    http_post_add("hostname", hostname);
+    http_post_add("website", website);
+    http_post_add("username", username);
+    http_post_add("value", password);
+    http_post_add("comment", comment);
+
+    if (internal_request("POST", API_CREDENTIAL_ADD) == 1) {
+        http_post_clear();        
+        return;
+    }
+    http_post_clear();
+
+    int error = json_readprimitive("result");
+    if (error == 1) {
+        fprintf(stdout, "Failed writing to database\n");
+    }
+}
+
 void api_cleanup(void) {
     http_cleanup();
     // No need to free _ldapUser
