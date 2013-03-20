@@ -1,0 +1,4 @@
+<pkmkdoc spec="1.12"><properties><title>Atrato CLI</title><build>/Users/mark/Workspaces/objc/AtratoCli/AtratoCLI/AtratoCLI/Atrato CLI.pkg</build><organization>nl.rootdev</organization><userSees ui="easy"/><min-target os="2"/><domain system="true"/></properties><distribution><versions min-spec="1.000000"/><scripts></scripts></distribution><description>CLI Utility to quickly read data from the Atrato.cc database using your LDAP credentials.
+
+Currently supported
+- Reading the credentials database</description><contents><choice title="AtratoCLI" id="choice0" starts_selected="true" starts_enabled="true" starts_hidden="false"><pkgref id="nl.rootdev.atratoCli.AtratoCLI.pkg"/></choice></contents><resources bg-scale="none" bg-align="topleft"><locale lang="nl"/></resources><flags/><item type="file">01atratocli.xml</item><mod>properties.title</mod><mod>description</mod><mod>properties.anywhereDomain</mod><mod>properties.systemDomain</mod></pkmkdoc>
