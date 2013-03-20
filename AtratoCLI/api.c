@@ -120,7 +120,7 @@ void api_credential_search(const char* query)
     http_post_add("username", _ldapUser);    
     http_post_add("password", _ldapKey);    
     
-    http_post_add("search", "atrato");
+    http_post_add("search", query);
     if (internal_request("POST", API_CREDENTIALS) == 1) {
         return;
     }
