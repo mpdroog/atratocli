@@ -127,7 +127,7 @@ HttpResponse* http_get(const char* query)
         return NULL;
     }
     if (response->len == 0) {
-        fprintf(stderr, "Zero length response from HTTP-server?");
+        fprintf(stderr, "Zero length response from HTTP-server?\n");
         free(response);
         return NULL;
     }

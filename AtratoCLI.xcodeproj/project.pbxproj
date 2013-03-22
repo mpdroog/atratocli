@@ -11,6 +11,9 @@
 		4D1FA77716D3632700B9008B /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D1FA77616D3632700B9008B /* json.c */; };
 		4D46931716D402D3003755EC /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D46931516D402D3003755EC /* md5.c */; };
 		4D46931E16D41A50003755EC /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D46931D16D41A50003755EC /* hash.c */; };
+		4D631D4616FC4122001E2BD0 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D631D4516FC4122001E2BD0 /* libsqlite3.dylib */; };
+		4D631D4A16FC4379001E2BD0 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D631D4916FC4379001E2BD0 /* db.c */; };
+		4D631D4D16FC4454001E2BD0 /* sql.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D631D4C16FC4454001E2BD0 /* sql.c */; };
 		4D6F3AB316CFE05000557DC1 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D6F3AB216CFE05000557DC1 /* main.c */; };
 		4D6F3AB516CFE05000557DC1 /* AtratoCLI.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */; };
 		4D6F3ABC16CFE12200557DC1 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */; };
@@ -43,6 +46,11 @@
 		4D46931B16D41726003755EC /* global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
 		4D46931C16D41A46003755EC /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
 		4D46931D16D41A50003755EC /* hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hash.c; sourceTree = "<group>"; };
+		4D631D4516FC4122001E2BD0 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		4D631D4816FC4371001E2BD0 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = db.h; sourceTree = "<group>"; };
+		4D631D4916FC4379001E2BD0 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = db.c; sourceTree = "<group>"; };
+		4D631D4B16FC444D001E2BD0 /* sql.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sql.h; sourceTree = "<group>"; };
+		4D631D4C16FC4454001E2BD0 /* sql.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sql.c; sourceTree = "<group>"; };
 		4D6F3AAE16CFE05000557DC1 /* AtratoCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AtratoCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D6F3AB216CFE05000557DC1 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = AtratoCLI.1; sourceTree = "<group>"; };
@@ -60,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D631D4616FC4122001E2BD0 /* libsqlite3.dylib in Frameworks */,
 				4D6F3ABC16CFE12200557DC1 /* libcurl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,6 +79,7 @@
 		4D6F3AA316CFE05000557DC1 = {
 			isa = PBXGroup;
 			children = (
+				4D631D4516FC4122001E2BD0 /* libsqlite3.dylib */,
 				4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */,
 				4D6F3AB116CFE05000557DC1 /* AtratoCLI */,
 				4D6F3AAF16CFE05000557DC1 /* Products */,
@@ -105,6 +115,10 @@
 				4D7D95A016D604DA003085ED /* api.c */,
 				4DD6D09816EB9B1B00B23F46 /* strutils.c */,
 				4DD6D09A16EBB11F00B23F46 /* strutils.h */,
+				4D631D4816FC4371001E2BD0 /* db.h */,
+				4D631D4916FC4379001E2BD0 /* db.c */,
+				4D631D4B16FC444D001E2BD0 /* sql.h */,
+				4D631D4C16FC4454001E2BD0 /* sql.c */,
 			);
 			path = AtratoCLI;
 			sourceTree = "<group>";
@@ -167,6 +181,8 @@
 				4D46931E16D41A50003755EC /* hash.c in Sources */,
 				4D7D95A116D604DA003085ED /* api.c in Sources */,
 				4DD6D09916EB9B1B00B23F46 /* strutils.c in Sources */,
+				4D631D4A16FC4379001E2BD0 /* db.c in Sources */,
+				4D631D4D16FC4454001E2BD0 /* sql.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

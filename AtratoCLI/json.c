@@ -25,20 +25,21 @@ int json_parse(const char *msg)
     bzero(&_tokens, sizeof(jsmntok_t)*JSON_TOKENS);
     jsmnerr_t response = jsmn_parse(&_parser, msg, _tokens, JSON_TOKENS);
     if (response == JSMN_ERROR_NOMEM) {
-        fprintf(stderr, "JSON Token array too small");
+        fprintf(stderr, "JSON token array too small\n");
         return 0;
     }
     if (response == JSMN_ERROR_INVAL) {
-        fprintf(stderr, "JSON contains invalid tokens");
+        printf("Server response: %s", msg);
+        fprintf(stderr, "JSON contains invalid tokens\n");
         return 0;
     }
     if (response == JSMN_ERROR_PART) {
-        fprintf(stderr, "JSON is received broken");
+        fprintf(stderr, "JSON is received broken\n");
         return 0;
     }
     
     if (response != JSMN_SUCCESS) {
-        fprintf(stderr, "Failed reading JSON response %d", response);
+        fprintf(stderr, "Failed reading JSON response %d\n", response);
         return 0;
     }
     _lastmsg = msg;
