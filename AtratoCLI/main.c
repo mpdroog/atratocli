@@ -9,14 +9,18 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <getopt.h>
 
 #include "api.h"
 #include "http.h"
+#include "db.h"
 
-static const char* internal_input_read(const char* msg, int required, const char* def_value, int max_size);
+int verbose = 0;
+
+static char* internal_input_read(const char* msg, int required, const char* def_value, int max_size);
 static void main_credential_add(void);
 
-static const char* internal_input_read(const char* msg, int required, const char* def_value, int max_size)
+static char* internal_input_read(const char* msg, int required, const char* def_value, int max_size)
 {
     fprintf(stdout, "%s", msg);
     if (required) {
@@ -27,92 +31,130 @@ static const char* internal_input_read(const char* msg, int required, const char
     }
     fprintf(stdout, " : ");
     
-    char* input = malloc(sizeof(char) * max_size + 1);
+    char* input = malloc(sizeof(char) * max_size +1);
     if (input == NULL) {
-        return 0;
+        return NULL;
     }
-    char* search = malloc(sizeof(char) * 4); // Assumption..
-    if (search == NULL) {
-        free(input);
-        return 0;
-    }
-    bzero(search, sizeof(char) * 4);
-    sprintf(search, "%%%ds", max_size);
+    bzero(input, sizeof(char) * max_size + 1);
     
-    if (scanf(search, input) != 1) {
-        free(input);
-        free(search);
-        return 0;
+    int pos = 0;
+    int c = 0;
+    for (;;) {
+        c = fgetc(stdin);
+        if (c == EOF || c == '\n') {
+            break;
+        }
+        input[pos] = c;
+        pos++;
     }
-    
     return input;
+}
+
+static void internal_canonical_name(void)
+{
+    fprintf(stdout, "atratocli, version 1.0\n\n");
+}
+
+static void internal_help(const char* name)
+{
+    fprintf(stdout, "usage: %s [--version] [--help] [--verbose]\n", name);
+    fprintf(stdout, "                 <command> [<args>]\n\n");
+    
+    fprintf(stdout, "\nThe most commonly used commands:\n");    
+    fprintf(stdout, "   credential search <value> Search credentials\n");
+    fprintf(stdout, "   credential add            Add credential\n");    
 }
 
 int main (int argc, const char* argv[])
 {
-    char* search = NULL;
-    int add = 0;
+    const char* class = NULL;
+    const char* method = NULL;
     
     if (argc < 2) {
-        fprintf(stdout, "atratocli, version 1.0\n\n");
-        fprintf(stdout, "usage: atratocli [-a][-c value]\n");
-        fprintf(stdout, "   c searchvalue : Search credentials\n");
-        fprintf(stdout, "   a             : Add credential\n");
+        internal_help(argv[0]);
         return 0;
     }
     
+    static struct option long_options[] = {
+        {"verbose", no_argument, &verbose, 1},
+        {"version", no_argument, 0, 'v'},
+        {"help", no_argument, 0, 'h'}
+    };
+    
+    int option_index = 0;
     int c = -1;
-    while ((c = getopt(argc, (char* const*)argv, "ac:")) != -1) {
+    while ((c = getopt_long(argc, (char* const*)argv, "h", long_options, &option_index)) != -1) {
         switch (c) {
-            case 'a':
-                add = 1;
-                break;
-            case 'c':
-                search = optarg;
-                break;
+            case 'v':
+                internal_canonical_name();
+                return 0;
+            case 'h':
+                internal_help(argv[0]);
+                return 0;
             case '?':
-                if (optopt == 'c') {
-                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-                } else if (isprint (optopt)) {
-                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                } else {
-                    fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
-                }
+                // Already handled by getopt_long
                 return 1;
-            default:
-                abort();
         }
     }
-    
-    char *username = getenv("USER");
-    printf("LDAP Username: ");
-    printf("%s\n", username);
-    const char* password = internal_input_read("LDAP Password", 1, NULL, 255);
-    if (password == NULL) {
-        free((void*)password);
+
+    if (optind+2 > argc) {
+        fprintf(stderr, "No command given\n");
         return 1;
-    }    
-    printf("\n");
+    }
+    {
+        class = argv[optind];
+        method = argv[optind+1];
+        optind += 2;
+    }
+
+    char* username = NULL;
+    char* password = NULL;
+    for (;;) {
+        if (username == NULL) {
+            char* tmpUsername = getenv("USER");
+            username = malloc(sizeof(char) * 200);
+            if (username == NULL) {
+                fprintf(stderr, "Failed allocating memory\n");
+                exit(1);
+            }
+            strncpy(username, tmpUsername, 200);            
+        } else {
+            char* newuser = internal_input_read("LDAP username:", 1, NULL, 200);
+            if (username != NULL) {
+                free(username);
+            }
+            username = newuser;
+        }
+        fprintf(stdout, "LDAP password for '%s':", username);
+        fflush(stdout);
+        password = getpass("");
+        if (password == NULL) {
+            fprintf(stderr, "Failed reading password\n");
+            return 1;
+        }
+        if (strlen(password) > 0) {
+            break;
+        }
+        printf("\n");
+    }
     
     if (api_init() != 0) {
         printf("Failed loading API\n");
-        free((void*)password);
         return 1;
     }
     if (api_login(username, password) != 0) {
-        printf("Failed login\n");
-        free((void*)password);        
         return 1;
     }
-    printf("Logged in\n");
-
-    if (search != NULL) {
-        api_credential_search(search);
-    } else if (add == 1) {
+    printf("Connected\n");
+    
+    if (strcmp(class, "credential") == 0 && strcmp(method, "search") == 0) {
+        api_credential_search(argv[optind]);
+    } else if (strcmp(class, "credential") == 0 && strcmp(method, "add") == 0) {
         main_credential_add();
     } else {
-        fprintf(stdout, "No instruction given\n");
+        fprintf(stdout, "Unsupported command %s::%s\n", class, method);
     }
+
     api_cleanup();
     return 0;
 }

@@ -9,6 +9,8 @@
 #include "json.h"
 #define JSON_TOKENS 1024
 
+extern int verbose;
+
 jsmn_parser _parser = {};
 const char *_lastmsg = NULL;
 jsmntok_t _tokens[JSON_TOKENS];
@@ -29,7 +31,6 @@ int json_parse(const char *msg)
         return 0;
     }
     if (response == JSMN_ERROR_INVAL) {
-        printf("Server response: %s", msg);
         fprintf(stderr, "JSON contains invalid tokens\n");
         return 0;
     }

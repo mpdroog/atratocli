@@ -20,6 +20,8 @@ char* _postFields;
 /** Amount of fields */
 int _postCount;
 
+extern int verbose;
+
 /**
  * Construct URL to request from server.
  * Warning: Don't forget to free returned URL!
@@ -50,8 +52,9 @@ int http_init(void)
         fprintf(stderr, "Failed creating temp cookiejar file");
         return 1;
     }
-    // TODO: Verbose?
-    printf("Created cookiejar: %s\n", _filename);
+    if (verbose) {
+        printf("Created cookiejar: %s\n", _filename);
+    }
     
     _cookiejar = tmpfile();
     if (_cookiejar == NULL) {
@@ -75,8 +78,13 @@ HttpResponse* http_post(const char* query)
 
     const char *url = internal_geturl(query);
     if (url == NULL) {
+        fprintf(stderr, "Failed getting URL for %s", query);
         free(response);
+        free((void*)url);
         return NULL;
+    }
+    if (verbose) {
+        fprintf(stdout, ">> POST %s\n", url);
     }
     curl_easy_setopt(_curl, CURLOPT_URL, url);
     curl_easy_setopt(_curl, CURLOPT_USERAGENT, "Atrato CLI");
@@ -88,18 +96,22 @@ HttpResponse* http_post(const char* query)
     
     CURLcode res = curl_easy_perform(_curl);
     free((void*)url);
+    
     if (res != CURLE_OK) {
-        fprintf(stderr, "cURL failed: %s\n", curl_easy_strerror(res));
+        fprintf(stderr, "HTTP failed: %s\n", curl_easy_strerror(res));
         free(response);
         return NULL;
     }
     if (response->len == 0) {
-        fprintf(stderr, "Zero length response from HTTP-server?");
+        fprintf(stderr, "HTTP Received nothing from webserver\n");
         free(response);
         return NULL;
     }
     
-    response->buffer[response->pos+1] = '\0'; // Make sure End-Of-String is given
+    response->buffer[response->pos] = '\0'; // Make sure End-Of-String is given
+    if (verbose) {
+        fprintf(stdout, "<< %s\n", response->buffer);
+    }
     return response;    
 }
 
@@ -113,6 +125,10 @@ HttpResponse* http_get(const char* query)
         free(response);
         return NULL;
     }
+    if (verbose) {
+        fprintf(stdout, ">> GET %s\n", url);
+    }
+
     curl_easy_setopt(_curl, CURLOPT_URL, url);
     curl_easy_setopt(_curl, CURLOPT_USERAGENT, "Atrato CLI");
     curl_easy_setopt(_curl, CURLOPT_COOKIEJAR, _filename);
@@ -122,17 +138,20 @@ HttpResponse* http_get(const char* query)
     CURLcode res = curl_easy_perform(_curl);
     free((void*)url);
     if (res != CURLE_OK) {
-        fprintf(stderr, "cURL failed: %s\n", curl_easy_strerror(res));
+        fprintf(stderr, "HTTP failed: %s\n", curl_easy_strerror(res));
         free(response);
         return NULL;
     }
     if (response->len == 0) {
-        fprintf(stderr, "Zero length response from HTTP-server?\n");
+        fprintf(stderr, "HTTP received nothing from webserver\n");
         free(response);
         return NULL;
     }
     
-    response->buffer[response->pos+1] = '\0'; // Make sure End-Of-String is given
+    response->buffer[response->pos] = '\0'; // Make sure End-Of-String is given
+    if (verbose) {
+        fprintf(stdout, "<< %s\n", response->buffer);
+    }    
     return response;
 }
 
@@ -162,7 +181,7 @@ void http_post_clear(void)
 const char* internal_geturl(const char* query)
 {
     if (256 - strlen(query) + strlen(API_URL) < 1) {
-        fprintf(stderr, "Url too long!");
+        fprintf(stderr, "URL too long!\n");
         return NULL;
     }
     char *url = malloc(sizeof(char)*256);
@@ -175,17 +194,22 @@ static size_t internal_curlresponse(void *ptr, size_t size, size_t nmemb, void *
 {
     HttpResponse *response = (HttpResponse*) jsonp;
     size_t available = response->len - response->pos;
+    if (available != 0) {
+        available--;
+    }
     size_t needed = size * nmemb;
     
-    if (needed > available) {
-        // +1 to ensure memory for \0
+    if ((needed/sizeof(char)) > available) {
         void *new = realloc(response->buffer, sizeof(char) * (response->len + needed +1));
         if (new == NULL) {
-            fprintf(stderr, "Failed to re-allocate more memory"); 
-            return 0;
+            if (response->buffer != NULL) {
+                free(response->buffer);
+            }
+            fprintf(stderr, "Failed to re-allocate more memory\n"); 
+            exit(1);
         }
         response->buffer = new;
-        response->len += needed;
+        response->len += needed +1;
     }
     
     memcpy((void*)&response->buffer[response->pos], ptr, needed);

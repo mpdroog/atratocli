@@ -64,9 +64,11 @@ static int internal_request(char* type, char* query)
     if (json_parse(response->buffer) == 0) {
         return 1;
     }
+    
     free(response);
     int error = json_readprimitive("result");
     if (error == 1) {
+        fprintf(stderr, "Server Error: %s\n", json_readstring("reason"));
         return 1;
     }
     
@@ -116,7 +118,6 @@ void api_credential_search(const char* query)
         return;
     }
 
-    // LDAP...
     http_post_add("username", _ldapUser);    
     http_post_add("password", _ldapKey);    
     
@@ -186,12 +187,13 @@ void api_credential_add(const char* hostname, const char* website, const char* u
 
     int error = json_readprimitive("result");
     if (error == 1) {
-        fprintf(stdout, "Failed writing to database\n");
+        fprintf(stdout, "Failed storing credential\n");
     }
 }
 
 void api_cleanup(void) {
     http_cleanup();
     // No need to free _ldapUser
-    free((void*)_ldapKey);
+    free((void*) _ldapUser);
+    //free((void*)_ldapKey);
 }

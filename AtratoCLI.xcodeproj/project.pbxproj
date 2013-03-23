@@ -51,7 +51,7 @@
 		4D631D4916FC4379001E2BD0 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = db.c; sourceTree = "<group>"; };
 		4D631D4B16FC444D001E2BD0 /* sql.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sql.h; sourceTree = "<group>"; };
 		4D631D4C16FC4454001E2BD0 /* sql.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sql.c; sourceTree = "<group>"; };
-		4D6F3AAE16CFE05000557DC1 /* AtratoCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AtratoCLI; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D6F3AAE16CFE05000557DC1 /* aci */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = aci; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D6F3AB216CFE05000557DC1 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		4D6F3AB416CFE05000557DC1 /* AtratoCLI.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = AtratoCLI.1; sourceTree = "<group>"; };
 		4D6F3ABB16CFE12200557DC1 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
@@ -89,7 +89,7 @@
 		4D6F3AAF16CFE05000557DC1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4D6F3AAE16CFE05000557DC1 /* AtratoCLI */,
+				4D6F3AAE16CFE05000557DC1 /* aci */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,7 +140,7 @@
 			);
 			name = AtratoCLI;
 			productName = AtratoCLI;
-			productReference = 4D6F3AAE16CFE05000557DC1 /* AtratoCLI */;
+			productReference = 4D6F3AAE16CFE05000557DC1 /* aci */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -230,6 +230,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = aci;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -237,14 +238,14 @@
 		4D6F3AB916CFE05000557DC1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = aci;
 			};
 			name = Debug;
 		};
 		4D6F3ABA16CFE05000557DC1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = aci;
 			};
 			name = Release;
 		};
