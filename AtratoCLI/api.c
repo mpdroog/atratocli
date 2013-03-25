@@ -20,9 +20,6 @@ static int loginstage = 0;
 static const char* _ldapUser = NULL;
 static const char* _ldapKey = NULL;
 
-int internal_find_key(const char* key);
-int internal_find_value(const char* key, const char* value);
-
 int api_init(void) {
     if (http_init() != 0) {
         return 1;
@@ -112,10 +109,10 @@ int api_login(const char* ldapUser, const char* ldapPass) {
     return 0;
 }
 
-void api_credential_search(const char* query)
+int api_credential_search(const char* query, int(*searchFn)(const char* key), int(*printFn)(const char* key, const char* value))
 {
     if (loginstage == 0) {
-        return;
+        return 1;
     }
 
     http_post_add("username", _ldapUser);    
@@ -123,43 +120,12 @@ void api_credential_search(const char* query)
     
     http_post_add("search", query);
     if (internal_request("POST", API_CREDENTIALS) == 1) {
-        return;
+        return 1;
     }
     http_post_clear();
 
-    printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
-    for (int i = 0; i < 111; i++) {
-        printf("-");
-    }
+    json_array_search("result", searchFn, printFn);
     printf("\n");
-    json_array_search("result", &internal_find_key, &internal_find_value);
-    printf("\n");
-}
-
-int internal_find_key(const char* key)
-{
-    if (strcmp(key, "credential_hostname") == 0) {
-        printf("\n");
-    }
-    if (
-        strcmp(key, "credential_hostname") == 0 ||
-        strcmp(key, "credential_website") == 0 ||
-        strcmp(key, "credential_username") == 0 ||
-        strcmp(key, "credential_value") == 0
-        ) {
-        return 1;
-    }
-    return 0;
-}
-
-int internal_find_value(const char* key, const char* value)
-{
-    char *decoded = str_replace("\\/", "/", value);
-    char *max = str_substr(0, 28, decoded);
-    printf("%-30s", max);
-    free(max);
-    free(decoded);
-    
     return 0;
 }
 

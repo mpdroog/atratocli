@@ -14,11 +14,18 @@
 #include "api.h"
 #include "http.h"
 #include "db.h"
+#include "strutils.h"
 
 int verbose = 0;
 
 static char* internal_input_read(const char* msg, int required, const char* def_value, int max_size);
+int internal_find_key(const char* key);
+int internal_find_value(const char* key, const char* value);
+int internal_store_value(const char* key, const char* value);
+
 static void main_credential_add(void);
+static void main_credential_search(const char* search);
+static void main_credential_cache(void);
 
 static char* internal_input_read(const char* msg, int required, const char* def_value, int max_size)
 {
@@ -148,15 +155,93 @@ int main (int argc, const char* argv[])
     printf("Connected\n");
     
     if (strcmp(class, "credential") == 0 && strcmp(method, "search") == 0) {
-        api_credential_search(argv[optind]);
+        main_credential_search(argv[optind]);
     } else if (strcmp(class, "credential") == 0 && strcmp(method, "add") == 0) {
         main_credential_add();
+    } else if (strcmp(class, "credential") == 0 && strcmp(method, "cache") == 0) {
+        main_credential_cache();
     } else {
         fprintf(stdout, "Unsupported command %s::%s\n", class, method);
     }
 
     api_cleanup();
     return 0;
+}
+
+int internal_find_key(const char* key)
+{
+    if (strcmp(key, "credential_hostname") == 0) {
+        printf("\n");
+    }
+    if (
+        strcmp(key, "credential_hostname") == 0 ||
+        strcmp(key, "credential_website") == 0 ||
+        strcmp(key, "credential_username") == 0 ||
+        strcmp(key, "credential_value") == 0
+        ) {
+        return 1;
+    }
+    return 0;
+}
+
+int internal_find_value(const char* key, const char* value)
+{
+    char *decoded = str_replace("\\/", "/", value);
+    char *max = str_substr(0, 28, decoded);
+    printf("%-30s", max);
+    free(max);
+    free(decoded);
+    
+    return 0;
+}
+
+static void main_credential_cache(void)
+{
+    if (db_open() == 1) {
+        fprintf(stderr, "Failed loading cache (SQLDB)\n");
+        return ;        
+    }
+    db_init(); // Ignore init errr
+    fprintf(stdout, "Writing credentials to cache\n");    
+    int status = api_credential_search("", &internal_find_key, &internal_store_value);
+    if (status == 1) {
+        fprintf(stderr, "Failed reading credentials\n");
+    }
+    fprintf(stdout, "Updated cache\n");
+    db_statement_store();
+    db_cleanup();
+}
+
+int internal_store_value(const char* key, const char* value)
+{
+    if (strcmp(key, "credential_hostname") == 0) {
+        fprintf(stdout, "YEAH");
+        if (db_statement_next() == 1) {
+            fprintf(stderr, "Failed starting next statement\n");
+            return 1;
+        }
+    }
+    if (db_statement_string(value) == 1) {
+        fprintf(stderr, "Failed writing %s to cache\n", value);
+        return 1;
+    }
+    return 0;
+}
+
+static void main_credential_search(const char* search)
+{
+    printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
+    for (int i = 0; i < 111; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    int status = api_credential_search(search, NULL, NULL);
+    if (status == 1) {
+        fprintf(stderr, "Failed reading credentials\n");
+        return;
+    }
+    printf("\n");
 }
 
 static void main_credential_add(void)
