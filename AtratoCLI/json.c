@@ -7,7 +7,7 @@
 //
 
 #include "json.h"
-#define JSON_TOKENS 1024
+#define JSON_TOKENS 2048
 
 extern int verbose;
 
