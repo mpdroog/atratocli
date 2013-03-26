@@ -20,5 +20,6 @@ int sql_statement_store(sql_stmt* stmt);
 int sql_statement_reset(sql_stmt* stmt);
 int sql_statement_close(sql_stmt* stmt);
 void sql_cleanup(void);
+void sql_errmsg(void);
 
 #endif
