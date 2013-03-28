@@ -9,17 +9,20 @@
 #include "db.h"
 #include "sql.h"
 #include <stdio.h>
+#include <string.h>
 
-const char* _structure_credentials = "CREATE TABLE 'website_credentials' ("
+extern int verbose;
+
+const char* const _structure_credentials = "CREATE TABLE 'website_credentials' ("
 "'credential_username' text NOT NULL,"
 "'credential_value' text NOT NULL,"
 "'credential_website' text NOT NULL,"
 "'credential_hostname' text)";
 
-const char* _query_credential_add = "INSERT INTO website_credentials(?, ?, ?, ?)";
+const char* const _query_credential_add = "INSERT INTO website_credentials VALUES(?, ?, ?, ?)";
 
 static sql_stmt* _stmt = NULL;
-static int index = 0;
+static int internal_field_index(const char* key);
 
 int db_open(void)
 {
@@ -43,15 +46,18 @@ int db_statement(void)
 {
     _stmt = sql_statement(_query_credential_add);
     if (_stmt == NULL) {
+        sql_errmsg();
         return 1;
     }
-    index = 0;
     return 0;
 }
 
-int db_statement_string(const char* value)
+int db_statement_string(const char* key, const char* value)
 {
-    return sql_statement_bind_string(_stmt, ++index, value);
+    if (verbose) {
+        printf("Key: %s value: %s\n", key, value);
+    }
+    return sql_statement_bind_string(_stmt, internal_field_index(key), value);
 }
 
 int db_statement_next(void)
@@ -62,4 +68,21 @@ int db_statement_next(void)
 int db_statement_store(void)
 {
     return sql_statement_store(_stmt);
+}
+
+static int internal_field_index(const char* key)
+{
+    if (strcmp(key, "credential_username") == 0) {
+        return 1;
+    }
+    if (strcmp(key, "credential_value") == 0) {
+        return 2;
+    }
+    if (strcmp(key, "credential_website") == 0) {
+        return 3;
+    }
+    if (strcmp(key, "credential_hostname") == 0) {
+        return 4;
+    }
+    return 0;
 }
