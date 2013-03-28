@@ -124,9 +124,7 @@ int api_credential_search(const char* query, int(*searchFn)(const char* key), in
     }
     http_post_clear();
 
-    json_array_search("result", searchFn, printFn);
-    printf("\n");
-    return 0;
+    return json_array_search("result", searchFn, printFn);
 }
 
 void api_credential_add(const char* hostname, const char* website, const char* username, const char* password, const char* comment)
