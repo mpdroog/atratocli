@@ -17,7 +17,7 @@ const char* const _structure_credentials = "CREATE TABLE 'website_credentials' (
 "'credential_username' text NOT NULL,"
 "'credential_value' text NOT NULL,"
 "'credential_website' text NOT NULL,"
-"'credential_hostname' text"
+"'credential_hostname' text,"
 "CONSTRAINT 'unique_entry' UNIQUE (credential_username, credential_value, credential_website, credential_hostname))";
 
 const char* const _query_credential_add = "INSERT INTO website_credentials VALUES(?, ?, ?, ?)";

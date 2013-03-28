@@ -58,6 +58,32 @@ int env_isdir(const char* const path)
     return 1;
 }
 
+/**
+ * -1 = Error on I/O
+ *  0 = Folder exists
+ *  1 = Path not directtory
+ *  2 = Not exist
+ */
+int env_isfile(const char* const path)
+{
+    struct stat sb = {};
+    int res = stat(path, &sb);
+    if (res == -1 && errno == 2) {
+        return 2;
+    }
+    if (res != 0) {
+        if (verbose) {
+            fprintf(stderr, "POSIX Error: %d %s\n", errno, strerror(errno));
+        }
+        return -1;
+    }
+    
+    if (S_ISREG(sb.st_mode)) {
+        return 0;
+    }
+    return 1;
+}
+
 int env_createfolder(const char* const path)
 {
     int status = env_isdir(path);
@@ -74,5 +100,17 @@ int env_createfolder(const char* const path)
             fprintf(stderr, "POSIX Error: %d %s\n", errno, strerror(errno));
         }        
     }
+    return 1;
+}
+
+int env_unlink(const char* const path)
+{
+    int res = unlink(path);
+    if (res == 0) {
+        return 0;
+    }
+    if (verbose) {
+        fprintf(stderr, "POSIX Error: %d %s\n", errno, strerror(errno));
+    }    
     return 1;
 }

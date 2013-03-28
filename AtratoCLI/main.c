@@ -28,6 +28,7 @@ int internal_store_key(const char* key);
 static void main_credential_add(void);
 static void main_credential_search(const char* search);
 static void main_credential_cache(void);
+static void main_db_init(void);
 
 static void internal_canonical_name(void)
 {
@@ -131,8 +132,9 @@ int main (int argc, const char* argv[])
         main_credential_search(argv[optind]);
     } else if (strcmp(class, "credential") == 0 && strcmp(method, "add") == 0) {
         main_credential_add();
-    } else if (strcmp(class, "credential") == 0 && strcmp(method, "cache") == 0) {
-        main_credential_cache();
+    } else if (strcmp(class, "db") == 0 && strcmp(method, "init") == 0) {
+        main_db_init();
+        main_credential_cache();        
     } else {
         fprintf(stdout, "Unsupported command %s::%s\n", class, method);
     }
@@ -173,6 +175,44 @@ int internal_find_value(const char* key, const char* value)
     return 0;
 }
 
+static void main_db_init(void)
+{
+    // TODO: Delete file?
+    const char* const home = env_homedir();
+    if (home == NULL) {
+        fprintf(stderr, "Failed resolving homedir\n");
+        abort();
+    }
+    char* path = malloc(sizeof(char) * 256); // Assumption
+    sprintf(path, "%s/%s", home, ".aci/");
+    free((void*)home);
+    
+    if (verbose) {
+        fprintf(stdout, "Settings folder: %s\n", path);
+    }
+    if (env_createfolder(path) == 1) {
+        fprintf(stderr, "Failed creating settings folder\n");
+        return ;
+    }
+    strcat(path, "at_ccc.db");
+    if (env_isfile(path) == 0) {
+        if (env_unlink(path) == 1) {
+            fprintf(stderr, "Failed deleting file %s\n", path);
+            return;
+        }
+    }    
+    if (db_open(path) == 1) {
+        fprintf(stderr, "Failed loading db\n");
+        return ;        
+    }
+    if (db_init() == 1) {
+        fprintf(stderr, "Failed initializing database\n");
+    }
+    db_cleanup();
+    fprintf(stdout, "Successfully created database: %s\n", path);
+    free(path);
+}
+
 static void main_credential_cache(void)
 {
     const char* const home = env_homedir();
@@ -185,27 +225,30 @@ static void main_credential_cache(void)
     free((void*)home);
 
     if (verbose) {
-        fprintf(stdout, "Temp folder: %s\n", path);
+        fprintf(stdout, "Settings folder: %s\n", path);
     }
     if (env_createfolder(path) == 1) {
-        fprintf(stderr, "Failed creating temp file\n");
+        free(path);
+        fprintf(stderr, "Failed creating settings file\n");
         return ;
     }
     strcat(path, "at_ccc.db");
     if (db_open(path) == 1) {
+        free(path);
         fprintf(stderr, "Failed loading cache (SQLDB)\n");
         return ;        
     }
+    free(path);
     //db_init(); // Ignore init errr
     if (db_statement() == 1) {
         fprintf(stderr, "Failed compiling statement\n");
-        abort();
+        return;
     }
     fprintf(stdout, "Writing credentials to cache\n");    
     int status = api_credential_search("", &internal_store_key, &internal_store_value);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
-        abort();
+        return;
     }
     fprintf(stdout, "Updated cache\n");
     db_statement_store();
