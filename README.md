@@ -10,3 +10,4 @@ TODO
 - Encrypt SQLite local data
 - Other authentication maybe? - http://www.idontplaydarts.com/2011/07/google-totp-two-factor-authentication-for-php/
 - Datacenter access request?
+- Replace const X* by const X* const where possible
