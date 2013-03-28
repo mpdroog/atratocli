@@ -22,6 +22,7 @@ static char* internal_input_read(const char* msg, int required, const char* def_
 int internal_find_key(const char* key);
 int internal_find_value(const char* key, const char* value);
 int internal_store_value(const char* key, const char* value);
+int internal_store_key(const char* key);
 
 static void main_credential_add(void);
 static void main_credential_search(const char* search);
@@ -59,7 +60,8 @@ static char* internal_input_read(const char* msg, int required, const char* def_
 
 static void internal_canonical_name(void)
 {
-    fprintf(stdout, "atratocli, version 1.0\n\n");
+    fprintf(stdout, "atratocli, version 1.0\n");
+    fprintf(stdout, "bugs can be reported to mpdroog@rootdev.nl\n\n");
 }
 
 static void internal_help(const char* name)
@@ -186,11 +188,16 @@ int internal_find_key(const char* key)
 
 int internal_find_value(const char* key, const char* value)
 {
-    char *decoded = str_replace("\\/", "/", value);
-    char *max = str_substr(0, 28, decoded);
-    printf("%-30s", max);
-    free(max);
-    free(decoded);
+    if (value == NULL) {
+        printf("%-30s", "NULL");
+    }
+    else {
+        char *decoded = str_replace("\\/", "/", value);
+        char *max = str_substr(0, 28, decoded);
+        printf("%-30s", max);
+        free(max);
+        free(decoded);
+    }
     
     return 0;
 }
@@ -201,29 +208,63 @@ static void main_credential_cache(void)
         fprintf(stderr, "Failed loading cache (SQLDB)\n");
         return ;        
     }
-    db_init(); // Ignore init errr
+    //db_init(); // Ignore init errr
+    if (db_statement() == 1) {
+        fprintf(stderr, "Failed compiling statement\n");
+        abort();
+    }
     fprintf(stdout, "Writing credentials to cache\n");    
-    int status = api_credential_search("", &internal_find_key, &internal_store_value);
+    int status = api_credential_search("", &internal_store_key, &internal_store_value);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
+        abort();
     }
     fprintf(stdout, "Updated cache\n");
     db_statement_store();
+    db_statement_next();
     db_cleanup();
 }
 
-int internal_store_value(const char* key, const char* value)
+int internal_store_key(const char* key)
 {
-    if (strcmp(key, "credential_hostname") == 0) {
-        fprintf(stdout, "YEAH");
+    static int first = 0;
+    if (first == 0 && strcmp(key, "credential_hostname") == 0) {
+        first = 1;
+    } else if (strcmp(key, "credential_hostname") == 0){
+        if (db_statement_store() == 1) {
+            fprintf(stderr, "Failed saving statement\n");
+            abort();
+        }
         if (db_statement_next() == 1) {
             fprintf(stderr, "Failed starting next statement\n");
-            return 1;
+            abort();
         }
     }
-    if (db_statement_string(value) == 1) {
-        fprintf(stderr, "Failed writing %s to cache\n", value);
+
+    if (
+        strcmp(key, "credential_hostname") == 0 ||
+        strcmp(key, "credential_website") == 0 ||
+        strcmp(key, "credential_username") == 0 ||
+        strcmp(key, "credential_value") == 0
+    ) {
         return 1;
+    }
+    return 0;
+}
+
+
+int internal_store_value(const char* key, const char* value)
+{
+    if (value == NULL) {
+        if (db_statement_string(key, "empty") == 1) {
+            fprintf(stderr, "Failed writing %s to cache\n", value);
+            abort();
+        }
+        return 0;
+    }
+    if (db_statement_string(key, value) == 1) {
+        fprintf(stderr, "Failed writing %s to cache\n", value);
+        abort();
     }
     return 0;
 }
@@ -236,10 +277,10 @@ static void main_credential_search(const char* search)
     }
     printf("\n");
 
-    int status = api_credential_search(search, NULL, NULL);
+    int status = api_credential_search(search, &internal_find_key, &internal_find_value);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
-        return;
+        abort();
     }
     printf("\n");
 }
