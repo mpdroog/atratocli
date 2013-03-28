@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4D1FA77116D2CA9F00B9008B /* http.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D1FA77016D2CA9F00B9008B /* http.c */; };
 		4D1FA77716D3632700B9008B /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D1FA77616D3632700B9008B /* json.c */; };
+		4D3D8C4F1704C9250005AC9B /* env.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D8C4E1704C9250005AC9B /* env.c */; };
 		4D46931716D402D3003755EC /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D46931516D402D3003755EC /* md5.c */; };
 		4D46931E16D41A50003755EC /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D46931D16D41A50003755EC /* hash.c */; };
 		4D631D4616FC4122001E2BD0 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D631D4516FC4122001E2BD0 /* libsqlite3.dylib */; };
@@ -41,6 +42,7 @@
 		4D1FA77016D2CA9F00B9008B /* http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = http.c; sourceTree = "<group>"; };
 		4D1FA77516D362CE00B9008B /* json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = json.h; sourceTree = "<group>"; };
 		4D1FA77616D3632700B9008B /* json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = json.c; sourceTree = "<group>"; };
+		4D3D8C4E1704C9250005AC9B /* env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = env.c; sourceTree = "<group>"; };
 		4D46931516D402D3003755EC /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
 		4D46931616D402D3003755EC /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
 		4D46931916D4046B003755EC /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 		4DD6D09A16EBB11F00B23F46 /* strutils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strutils.h; sourceTree = "<group>"; };
 		4DF946FF1704C46D002CECD3 /* stdin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stdin.c; sourceTree = "<group>"; };
 		4DF947011704C476002CECD3 /* stdin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdin.h; sourceTree = "<group>"; };
+		4DF947021704C8C2002CECD3 /* env.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = env.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				4D46931916D4046B003755EC /* config.h */,
+				4D3D8C4E1704C9250005AC9B /* env.c */,
 				4D46931516D402D3003755EC /* md5.c */,
 				4D46931616D402D3003755EC /* md5.h */,
 				4D6F3ABD16CFE30400557DC1 /* jsmn.c */,
@@ -124,6 +128,7 @@
 				4D631D4C16FC4454001E2BD0 /* sql.c */,
 				4DF946FF1704C46D002CECD3 /* stdin.c */,
 				4DF947011704C476002CECD3 /* stdin.h */,
+				4DF947021704C8C2002CECD3 /* env.h */,
 			);
 			path = AtratoCLI;
 			sourceTree = "<group>";
@@ -189,6 +194,7 @@
 				4D631D4A16FC4379001E2BD0 /* db.c in Sources */,
 				4D631D4D16FC4454001E2BD0 /* sql.c in Sources */,
 				4DF947001704C46D002CECD3 /* stdin.c in Sources */,
+				4D3D8C4F1704C9250005AC9B /* env.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

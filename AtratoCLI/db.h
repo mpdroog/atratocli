@@ -9,9 +9,7 @@
 #ifndef AtratoCLI_db_h
 #define AtratoCLI_db_h
 
-#define DB_PATH "file:at_ccc.db"
-
-int db_open(void);
+int db_open(const char* const path);
 void db_cleanup(void);
 int db_init(void);
 

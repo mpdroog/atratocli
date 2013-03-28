@@ -16,6 +16,7 @@
 #include "db.h"
 #include "strutils.h"
 #include "stdin.h"
+#include "env.h"
 
 int verbose = 0;
 
@@ -174,7 +175,24 @@ int internal_find_value(const char* key, const char* value)
 
 static void main_credential_cache(void)
 {
-    if (db_open() == 1) {
+    const char* const home = env_homedir();
+    if (home == NULL) {
+        fprintf(stderr, "Failed resolving homedir\n");
+        abort();
+    }
+    char* path = malloc(sizeof(char) * 256); // Assumption
+    sprintf(path, "%s/%s", home, ".aci/");
+    free((void*)home);
+
+    if (verbose) {
+        fprintf(stdout, "Temp folder: %s\n", path);
+    }
+    if (env_createfolder(path) == 1) {
+        fprintf(stderr, "Failed creating temp file\n");
+        return ;
+    }
+    strcat(path, "at_ccc.db");
+    if (db_open(path) == 1) {
         fprintf(stderr, "Failed loading cache (SQLDB)\n");
         return ;        
     }
@@ -250,7 +268,7 @@ static void main_credential_search(const char* search)
     int status = api_credential_search(search, &internal_find_key, &internal_find_value);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
-        abort();
+        return;
     }
     printf("\n");
 }

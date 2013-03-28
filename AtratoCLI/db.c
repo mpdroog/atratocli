@@ -25,9 +25,9 @@ const char* const _query_credential_add = "INSERT INTO website_credentials VALUE
 static sql_stmt* _stmt = NULL;
 static int internal_field_index(const char* key);
 
-int db_open(void)
+int db_open(const char* const path)
 {
-    return sql_open(DB_PATH);
+    return sql_open(path);
 }
 
 int db_init(void)
