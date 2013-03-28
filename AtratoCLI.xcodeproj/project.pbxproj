@@ -20,6 +20,7 @@
 		4D6F3ABF16CFE30400557DC1 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D6F3ABD16CFE30400557DC1 /* jsmn.c */; };
 		4D7D95A116D604DA003085ED /* api.c in Sources */ = {isa = PBXBuildFile; fileRef = 4D7D95A016D604DA003085ED /* api.c */; };
 		4DD6D09916EB9B1B00B23F46 /* strutils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4DD6D09816EB9B1B00B23F46 /* strutils.c */; };
+		4DF947001704C46D002CECD3 /* stdin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4DF946FF1704C46D002CECD3 /* stdin.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -61,6 +62,8 @@
 		4D7D95A016D604DA003085ED /* api.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = api.c; sourceTree = "<group>"; };
 		4DD6D09816EB9B1B00B23F46 /* strutils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strutils.c; sourceTree = "<group>"; };
 		4DD6D09A16EBB11F00B23F46 /* strutils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strutils.h; sourceTree = "<group>"; };
+		4DF946FF1704C46D002CECD3 /* stdin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stdin.c; sourceTree = "<group>"; };
+		4DF947011704C476002CECD3 /* stdin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdin.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,6 +122,8 @@
 				4D631D4916FC4379001E2BD0 /* db.c */,
 				4D631D4B16FC444D001E2BD0 /* sql.h */,
 				4D631D4C16FC4454001E2BD0 /* sql.c */,
+				4DF946FF1704C46D002CECD3 /* stdin.c */,
+				4DF947011704C476002CECD3 /* stdin.h */,
 			);
 			path = AtratoCLI;
 			sourceTree = "<group>";
@@ -183,6 +188,7 @@
 				4DD6D09916EB9B1B00B23F46 /* strutils.c in Sources */,
 				4D631D4A16FC4379001E2BD0 /* db.c in Sources */,
 				4D631D4D16FC4454001E2BD0 /* sql.c in Sources */,
+				4DF947001704C46D002CECD3 /* stdin.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

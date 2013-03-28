@@ -15,10 +15,10 @@
 #include "http.h"
 #include "db.h"
 #include "strutils.h"
+#include "stdin.h"
 
 int verbose = 0;
 
-static char* internal_input_read(const char* msg, int required, const char* def_value, int max_size);
 int internal_find_key(const char* key);
 int internal_find_value(const char* key, const char* value);
 int internal_store_value(const char* key, const char* value);
@@ -27,36 +27,6 @@ int internal_store_key(const char* key);
 static void main_credential_add(void);
 static void main_credential_search(const char* search);
 static void main_credential_cache(void);
-
-static char* internal_input_read(const char* msg, int required, const char* def_value, int max_size)
-{
-    fprintf(stdout, "%s", msg);
-    if (required) {
-        fprintf(stdout, "*");
-    }
-    if (def_value != NULL) {
-        fprintf(stdout, " [%s] ", def_value);        
-    }
-    fprintf(stdout, " : ");
-    
-    char* input = malloc(sizeof(char) * max_size +1);
-    if (input == NULL) {
-        return NULL;
-    }
-    bzero(input, sizeof(char) * max_size + 1);
-    
-    int pos = 0;
-    int c = 0;
-    for (;;) {
-        c = fgetc(stdin);
-        if (c == EOF || c == '\n') {
-            break;
-        }
-        input[pos] = c;
-        pos++;
-    }
-    return input;
-}
 
 static void internal_canonical_name(void)
 {
@@ -128,7 +98,7 @@ int main (int argc, const char* argv[])
             }
             strncpy(username, tmpUsername, 200);            
         } else {
-            char* newuser = internal_input_read("LDAP username:", 1, NULL, 200);
+            char* newuser = stdin_input_read("LDAP username:", 1, NULL, 200);
             if (username != NULL) {
                 free(username);
             }
@@ -287,11 +257,11 @@ static void main_credential_search(const char* search)
 
 static void main_credential_add(void)
 {
-    const char* hostname = internal_input_read("Hostname", 1, NULL, 255);
-    const char* website = internal_input_read("Website", 0, NULL, 255);
-    const char* username = internal_input_read("Username", 1, NULL, 255);
-    const char* password = internal_input_read("Password", 1, NULL, 255);
-    const char* comment = internal_input_read("Comment", 1, NULL, 255);
+    const char* hostname = stdin_input_read("Hostname", 1, NULL, 255);
+    const char* website = stdin_input_read("Website", 0, NULL, 255);
+    const char* username = stdin_input_read("Username", 1, NULL, 255);
+    const char* password = stdin_input_read("Password", 1, NULL, 255);
+    const char* comment = stdin_input_read("Comment", 1, NULL, 255);
     
     if (hostname == NULL || website == NULL || username == NULL || password == NULL || comment == NULL) {
         goto cleanup;
