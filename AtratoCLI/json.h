@@ -23,5 +23,5 @@ int json_parse(const char *msg);
 char* json_readstring(const char *key);
 int json_readprimitive(const char *key);
 
-void json_array_search(const char* baseName, int(*searchFn)(const char* key), int(*printFn)(const char* key, const char* value));
+int json_array_search(const char* baseName, int(*searchFn)(const char* key), int(*printFn)(const char* key, const char* value));
 #endif

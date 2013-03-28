@@ -14,6 +14,9 @@ extern int verbose;
 jsmn_parser _parser = {};
 const char *_lastmsg = NULL;
 jsmntok_t _tokens[JSON_TOKENS];
+const char *_lastkey = NULL;
+
+const char* internal_get_string(const jsmntok_t const token);
 
 void json_init(void) 
 {
@@ -114,51 +117,115 @@ char* json_readstring(const char *key)
     return NULL;
 }
 
-void json_array_search(const char* baseName, int(*searchFn)(const char* key), int(*printFn)(const char* key, const char* value) ) {
-    int nextmatch = 0;
-    int end = 0;
-    int printcount = 0;
-    int printNextKey = 0;
-    
-    for (int i = 0; i < JSON_TOKENS; i++) {
-        jsmntok_t pos = _tokens[i];
-        // pos == JSMN_ARRAY then end = end of last string
-        if (nextmatch == 1 && end == 0) {
-            end = pos.end;
+// Allocate and return a stripped out string
+const char* internal_get_string(const jsmntok_t const token)
+{
+    int strsize = token.end - token.start;
+    char* msg = (char*) malloc(sizeof(char) * (strsize+1));
+    if (msg == NULL) {
+        fprintf(stderr, "JSON: Malloc failed\n");
+        return NULL;
+    }
+    memcpy(msg, (const void*) _lastmsg + token.start, strsize);
+    // TODO: Validate response?
+    msg[strsize] = '\0';
+    return msg;
+}
+
+int json_array_search(const char* baseName, int(*searchFn)(const char* key), int(*printFn)(const char* key, const char* value) )
+{
+    size_t begin_index = 0;
+    size_t end_offset = 0;
+
+    // Step1. Find base element we start reading from
+    // base element is a stringkey pointing to an array    
+    for (begin_index = 0; begin_index < JSON_TOKENS; begin_index++) {
+        jsmntok_t token = _tokens[begin_index];
+        jsmntok_t next = {};
+
+        if (end_offset == 0) {
+            if (token.type == JSMN_STRING) {
+                const char* key = internal_get_string(token);
+                if (strcmp(key, baseName) == 0) {
+                    // Found base element
+                    begin_index++;
+                    next = _tokens[begin_index];
+                    if (next.type != JSMN_ARRAY) {
+                        fprintf(stderr, "JSON: Malformed JSON, baseName not containing array\n");
+                        return 1;
+                    }
+                    if (next.end == 0) {
+                        fprintf(stderr, "JSON: Malformed JSON, baseName it's array is 0chars in memory\n");
+                        return 1;
+                    }
+                    
+                    end_offset = next.end;
+                    if (verbose) {
+                        fprintf(stdout, "JSON: Found end offset at %ld\n", end_offset);
+                    }
+                    
+                    // Stop iteration now we have position
+                    break;
+                }
+                free((void*) key);
+            }
         }
-        if (end > 0 && pos.start > end) {
+    }
+    
+    if (end_offset == 0) {
+        fprintf(stderr, "Failed finding baseName: %s\n", baseName);
+        return 1;
+    }
+
+    // Step2. Iterate on values
+    // % 2 == 0 means key, else value if interested
+    int printNext = 0;
+    int offset = 0;
+    for (size_t i = begin_index; i < JSON_TOKENS; i++) {
+        jsmntok_t token = _tokens[i];
+        // Check if we can stop processing
+        if (token.start > end_offset) {
             break;
         }
         
-        if (pos.type == JSMN_PRIMITIVE && pos.end > 0) {
-            printcount++;
-            printf("%-30s", "NULL");
-        }
-        if (pos.type == JSMN_STRING && pos.end > 0) {
-            // TODO: Duplicate
-            int strsize = pos.end - pos.start;
-            char* msg = (char*) malloc(sizeof(char) * (strsize+1));
-            if (msg == NULL) {
-                fprintf(stderr, "Failed allocating memory?");
-                return;
-            }
-            memcpy(msg, (const void*) _lastmsg + pos.start, strsize);
-            msg[strsize] = '\0';
-            if (nextmatch == 1 && end > 0) {
-                printcount++;
-                if (printcount % 2 == 0 && printNextKey == 1) {
-                    printNextKey = 0;
-                    printFn("X", msg);
+        if (token.type == JSMN_STRING || token.type == JSMN_PRIMITIVE) {
+            if (offset % 2 == 0) {
+                // Every 2 steps check if value after key needs
+                // to be printed
+                if (token.type != JSMN_STRING) {
+                    fprintf(stderr, "Key is expected to be String, received something else #%d\n", token.type);
+                    return 1;
                 }
-                else if (printcount % 2 == 1) {
-                    printNextKey = searchFn(msg);
+                const char* key = internal_get_string(token);
+                if (searchFn(key) == 1) {
+                    printNext = 1;
+                    _lastkey = key;
                 }
+            } else if(printNext == 1) {
+                // Value that needs to be printed
+                printNext = 0;
+                if (token.type == JSMN_PRIMITIVE) {
+                    printFn(_lastkey, NULL);
+                }
+                else if (token.type == JSMN_STRING) {
+                    const char* value = internal_get_string(token);
+                    // TODO: result ignored?
+                    printFn(_lastkey, value);
+                    _lastkey = NULL;
+                    free((void*) value);
+                }
+                else {
+                    fprintf(stderr, "Unsupported type #%d\n", token.type);
+                    return 1;
+                }
+                
+                // Free the last key
+                free((void*) _lastkey);
+                _lastkey = NULL;
             }
-            if (strcmp(msg, baseName) == 0) {
-                // Exact match, we need next values
-                nextmatch = 1;
-            }
-            free(msg);
+            offset++;
         }
     }
+    
+    return 0;
 }
