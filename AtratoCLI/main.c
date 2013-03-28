@@ -107,7 +107,7 @@ int main (int argc, const char* argv[])
     }
 
     if (optind+2 > argc) {
-        fprintf(stderr, "No command given\n");
+        internal_help(argv[0]);
         return 1;
     }
     {
