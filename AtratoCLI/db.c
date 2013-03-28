@@ -52,6 +52,11 @@ int db_statement(void)
     return 0;
 }
 
+int db_statement_null(const char* key)
+{
+    return sql_statement_bind_null(_stmt, internal_field_index(key));
+}
+
 int db_statement_string(const char* key, const char* value)
 {
     if (verbose) {

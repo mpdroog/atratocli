@@ -16,6 +16,7 @@ void db_cleanup(void);
 int db_init(void);
 
 int db_statement(void);
+int db_statement_null(const char* key);
 int db_statement_string(const char* key, const char* value);
 int db_statement_next(void);
 int db_statement_store(void);

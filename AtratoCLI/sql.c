@@ -53,7 +53,20 @@ sql_stmt* sql_statement(const char* query)
     return stmt;
 }
 
-int sql_statement_bind_string(sql_stmt* stmt, const int index, const char* value) {
+int sql_statement_bind_null(sql_stmt* stmt, const int index)
+{
+    int res = sqlite3_bind_null(stmt, index);
+    if (res != SQLITE_OK) {
+        if (verbose) {
+            fprintf(stderr, "SQL: Error binding index %d with NULL\n", index);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+int sql_statement_bind_string(sql_stmt* stmt, const int index, const char* value)
+{
     int res = sqlite3_bind_text(stmt, index, value, -1, SQLITE_TRANSIENT);
     if (res != SQLITE_OK) {
         if (verbose) {

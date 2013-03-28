@@ -256,7 +256,7 @@ int internal_store_key(const char* key)
 int internal_store_value(const char* key, const char* value)
 {
     if (value == NULL) {
-        if (db_statement_string(key, "empty") == 1) {
+        if (db_statement_null(key) == 1) {
             fprintf(stderr, "Failed writing %s to cache\n", value);
             abort();
         }
