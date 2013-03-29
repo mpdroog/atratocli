@@ -17,6 +17,9 @@ extern int verbose;
 
 int sql_open(const char* path)
 {
+    if (verbose) {
+        fprintf(stdout, "SQLite open: %s\n", path);
+    }
     if (sqlite3_open(path, &_db)) {
         if (verbose) {
             fprintf(stderr, "SQL: %s\n", sqlite3_errmsg(_db));
@@ -29,16 +32,18 @@ int sql_open(const char* path)
 
 int sql_exec(int(*callback)(void *NotUsed, int argc, char **argv, char **azColName), const char* query)
 {
+    if (verbose) {
+        fprintf(stdout, "SQL Query: %s\n", query);
+    }    
     int res = sqlite3_exec(_db, query, callback, 0, &sql_error);
     if (res != SQLITE_OK) {
         if (verbose) {
-            fprintf(stderr, "SQL: %s\n", sql_error);
+            fprintf(stderr, "SQL Error: %s\n", sql_error);
         }
         sqlite3_free(sql_error);
         sql_error = NULL;
         return 1;
     }
-    
     return 0;
 }
 

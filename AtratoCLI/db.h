@@ -18,5 +18,5 @@ int db_statement_null(const char* key);
 int db_statement_string(const char* key, const char* value);
 int db_statement_next(void);
 int db_statement_store(void);
-
+int db_credential_find(int (*callback)(void*, int, char**, char**), const char* const query);
 #endif

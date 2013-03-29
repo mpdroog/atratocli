@@ -24,6 +24,7 @@ int internal_find_key(const char* key);
 int internal_find_value(const char* key, const char* value);
 int internal_store_value(const char* key, const char* value);
 int internal_store_key(const char* key);
+int internal_dbfind(void* unused, int argc, char** argv, char** colname);
 
 static void main_credential_add(void);
 static void main_credential_search(const char* search);
@@ -175,9 +176,8 @@ int internal_find_value(const char* key, const char* value)
     return 0;
 }
 
-static void main_db_init(void)
+static char* internal_db_path(int include_file)
 {
-    // TODO: Delete file?
     const char* const home = env_homedir();
     if (home == NULL) {
         fprintf(stderr, "Failed resolving homedir\n");
@@ -186,7 +186,16 @@ static void main_db_init(void)
     char* path = malloc(sizeof(char) * 256); // Assumption
     sprintf(path, "%s/%s", home, ".aci/");
     free((void*)home);
+    if (include_file == 1) {
+        strcat(path, "at_ccc.db");
+    }
     
+    return path;
+}
+
+static void main_db_init(void)
+{
+    char* path = internal_db_path(0);
     if (verbose) {
         fprintf(stdout, "Settings folder: %s\n", path);
     }
@@ -215,15 +224,7 @@ static void main_db_init(void)
 
 static void main_credential_cache(void)
 {
-    const char* const home = env_homedir();
-    if (home == NULL) {
-        fprintf(stderr, "Failed resolving homedir\n");
-        abort();
-    }
-    char* path = malloc(sizeof(char) * 256); // Assumption
-    sprintf(path, "%s/%s", home, ".aci/");
-    free((void*)home);
-
+    char* path = internal_db_path(0);
     if (verbose) {
         fprintf(stdout, "Settings folder: %s\n", path);
     }
@@ -308,12 +309,31 @@ static void main_credential_search(const char* search)
     }
     printf("\n");
 
-    int status = api_credential_search(search, &internal_find_key, &internal_find_value);
+    const char* const path = internal_db_path(1);
+    if (db_open(path) == 1) {
+        fprintf(stderr, "Failed opening db\n");        
+        return;
+    }
+    //int status = api_credential_search(search, &internal_find_key, &internal_find_value);
+    int status = db_credential_find(&internal_dbfind, search);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
         return;
     }
     printf("\n");
+    db_cleanup();    
+}
+
+int internal_dbfind(void* unused, int argc, char** argv, char** colname)
+{
+    for (int i = 0; i < argc; i++) {
+        const char* key = colname[i];
+        const char* value = argv[i];
+        if (internal_find_key(key)) {
+            internal_find_value(key, value);
+        }
+    }
+    return 0;
 }
 
 static void main_credential_add(void)

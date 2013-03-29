@@ -60,13 +60,14 @@ int env_isdir(const char* const path)
 
 /**
  * -1 = Error on I/O
- *  0 = Folder exists
- *  1 = Path not directtory
+ *  0 = File exists
+ *  1 = Path not regular file
  *  2 = Not exist
  */
 int env_isfile(const char* const path)
 {
-    struct stat sb = {};
+    struct stat sb;
+    bzero(&sb, sizeof(stat));
     int res = stat(path, &sb);
     if (res == -1 && errno == 2) {
         return 2;
