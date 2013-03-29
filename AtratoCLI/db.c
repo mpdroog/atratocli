@@ -23,7 +23,8 @@ const char* const _structure_credentials = "CREATE TABLE 'website_credentials' (
 const char* const _query_credential_add = "INSERT INTO website_credentials VALUES(?, ?, ?, ?)";
 
 const char* const _query_credential_find = "SELECT * FROM 'website_credentials' "
-"WHERE credential_username LIKE '%%%q%%'";
+"WHERE credential_hostname LIKE '%%%q%%' OR credential_website LIKE '%%%q%%' "
+"OR credential_username LIKE '%%%q%%'";
 
 static sql_stmt* _stmt = NULL;
 static int internal_field_index(const char* key);
@@ -102,7 +103,7 @@ static int internal_field_index(const char* key)
 int db_credential_find(int (*callback)(void*, int, char**, char**), const char* const query)
 {
     // TODO: Don't use mprintf here..
-    const char *zSQL = sqlite3_mprintf(_query_credential_find, query);
+    const char *zSQL = sqlite3_mprintf(_query_credential_find, query, query, query);
     if (zSQL == NULL) {
         fprintf(stdout, "Failed creating query\n");
         return 1;

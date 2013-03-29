@@ -30,6 +30,20 @@ static void main_credential_add(void);
 static void main_credential_search(const char* search);
 static void main_credential_cache(void);
 static void main_db_init(void);
+int main_connect(const char* const username, const char* const password);
+
+int main_connect(const char* const username, const char* const password)
+{
+    if (api_init() != 0) {
+        printf("Failed loading API\n");
+        return 1;
+    }
+    if (api_login(username, password) != 0) {
+        return 1;
+    }
+    printf("Connected\n");
+    return 0;
+}
 
 static void internal_canonical_name(void)
 {
@@ -119,21 +133,14 @@ int main (int argc, const char* argv[])
         }
         printf("\n");
     }
-    
-    if (api_init() != 0) {
-        printf("Failed loading API\n");
-        return 1;
-    }
-    if (api_login(username, password) != 0) {
-        return 1;
-    }
-    printf("Connected\n");
-    
+
     if (strcmp(class, "credential") == 0 && strcmp(method, "search") == 0) {
         main_credential_search(argv[optind]);
     } else if (strcmp(class, "credential") == 0 && strcmp(method, "add") == 0) {
+        main_connect(username, password);
         main_credential_add();
     } else if (strcmp(class, "db") == 0 && strcmp(method, "init") == 0) {
+        main_connect(username, password);        
         main_db_init();
         main_credential_cache();        
     } else {
