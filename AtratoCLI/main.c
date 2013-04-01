@@ -19,6 +19,7 @@
 #include "env.h"
 
 int verbose = 0;
+const char* setting_path = NULL;
 
 int internal_find_key(const char* key);
 int internal_find_value(const char* key, const char* value);
@@ -30,6 +31,7 @@ static void main_credential_add(void);
 static void main_credential_search(const char* search);
 static void main_credential_cache(void);
 static void main_db_init(void);
+static char* internal_db_path(int include_file);
 int main_connect(const char* const username, const char* const password);
 
 int main_connect(const char* const username, const char* const password)
@@ -62,7 +64,7 @@ static void internal_help(const char* name)
 }
 
 int main (int argc, const char* argv[])
-{
+{    
     const char* class = NULL;
     const char* method = NULL;
     
@@ -133,6 +135,16 @@ int main (int argc, const char* argv[])
         }
         printf("\n");
     }
+    
+    setting_path = internal_db_path(0);
+    if (verbose) {
+        fprintf(stdout, "Settings folder: %s\n", setting_path);
+    }
+    if (env_createfolder(setting_path) == 1) {
+        fprintf(stderr, "Failed creating settings folder\n");
+        free((void*)setting_path);
+        return 1;
+    }    
 
     if (strcmp(class, "credential") == 0 && strcmp(method, "search") == 0) {
         main_credential_search(argv[optind]);
@@ -147,6 +159,7 @@ int main (int argc, const char* argv[])
         fprintf(stdout, "Unsupported command %s::%s\n", class, method);
     }
 
+    free((void*) setting_path);
     api_cleanup();
     return 0;
 }
@@ -190,34 +203,37 @@ static char* internal_db_path(int include_file)
         fprintf(stderr, "Failed resolving homedir\n");
         abort();
     }
-    char* path = malloc(sizeof(char) * 256); // Assumption
-    sprintf(path, "%s/%s", home, ".aci/");
-    free((void*)home);
+    size_t size = sizeof(char) * (strlen(home) + strlen(PATH_SETTINGS) +1);
     if (include_file == 1) {
-        strcat(path, "at_ccc.db");
+        size += sizeof(char) * strlen(PATH_SQLDB);
+    }
+    char* path = malloc(size);
+    if (path == NULL) {
+        fprintf(stderr, "Malloc failed\n");
+        free((void*)home);            
+        abort();
+    }
+    bzero(path, size);
+    strcpy(path, home);
+    strcat(path, PATH_SETTINGS);
+    if (include_file == 1) {
+        strcat(path, PATH_SQLDB);
     }
     
+    free((void*)home);    
     return path;
 }
 
 static void main_db_init(void)
 {
-    char* path = internal_db_path(0);
-    if (verbose) {
-        fprintf(stdout, "Settings folder: %s\n", path);
-    }
-    if (env_createfolder(path) == 1) {
-        fprintf(stderr, "Failed creating settings folder\n");
-        return ;
-    }
-    strcat(path, "at_ccc.db");
-    if (env_isfile(path) == 0) {
-        if (env_unlink(path) == 1) {
-            fprintf(stderr, "Failed deleting file %s\n", path);
+    const char* path_db = internal_db_path(1);
+    if (env_isfile(path_db) == 0) {
+        if (env_unlink(path_db) == 1) {
+            fprintf(stderr, "Failed deleting file %s\n", path_db);
             return;
         }
     }    
-    if (db_open(path) == 1) {
+    if (db_open(path_db) == 1) {
         fprintf(stderr, "Failed loading db\n");
         return ;        
     }
@@ -225,8 +241,8 @@ static void main_db_init(void)
         fprintf(stderr, "Failed initializing database\n");
     }
     db_cleanup();
-    fprintf(stdout, "Successfully created database: %s\n", path);
-    free(path);
+    fprintf(stdout, "Successfully created database: %s\n", path_db);
+    free((void*) path_db);
 }
 
 static void main_credential_cache(void)
@@ -319,16 +335,19 @@ static void main_credential_search(const char* search)
     const char* const path = internal_db_path(1);
     if (db_open(path) == 1) {
         fprintf(stderr, "Failed opening db\n");        
+        free((void*) path);
         return;
     }
     //int status = api_credential_search(search, &internal_find_key, &internal_find_value);
     int status = db_credential_find(&internal_dbfind, search);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
+        free((void*) path);        
         return;
     }
     printf("\n");
-    db_cleanup();    
+    db_cleanup();
+    free((void*) path);    
 }
 
 int internal_dbfind(void* unused, int argc, char** argv, char** colname)

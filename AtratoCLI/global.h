@@ -19,10 +19,15 @@ typedef struct HttpResponse HttpResponse;
 
 #define VERSION "0.1"
 #define API_URL "https://atrato.cc/api.php"
+//#define API_URL "http://dev.ccc.atrato/api.php"
 #define API_HASH "?c=authentication&m=hash"
 #define API_LOGIN "?c=authentication&m=login"
 #define API_CREDENTIALS "?c=credentials&m=credentials"
 #define API_CREDENTIAL_ADD "?c=credentials&m=add"
+
+#define PATH_SETTINGS ".aci/"
+#define PATH_SQLDB "at_ccc.db"
+#define PATH_CABUNDLE "ca-bundle.crt"
 
 /**
  * At least 128bit

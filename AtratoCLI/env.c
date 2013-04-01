@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -25,11 +26,16 @@ const char* const env_homedir(void)
     if (pw == NULL) {
         return NULL;
     }
-    char* dir = malloc(sizeof(char) * strlen(pw->pw_dir));
+    // +1 for \0 and \1 for the trailing slash /
+    size_t size = sizeof(char) * (strlen(pw->pw_dir) +2);
+    char* dir = malloc(size);
     if (dir == NULL) {
         return NULL;
     }
-    return strcpy(dir, pw->pw_dir);
+    bzero(dir, size);
+    strcpy(dir, pw->pw_dir);
+    strcat(dir, "/");
+    return dir;
 }
 
 /**

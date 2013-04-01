@@ -9,6 +9,7 @@
 #include "sql.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 static sqlite3* _db = NULL;
 char* sql_error = NULL;
@@ -17,6 +18,11 @@ extern int verbose;
 
 int sql_open(const char* path)
 {
+    if (_db != NULL) {
+        fprintf(stderr, "Sqlite3 connection already open\n");
+        return 1;
+    }
+    
     if (verbose) {
         fprintf(stdout, "SQLite open: %s\n", path);
     }
@@ -124,4 +130,5 @@ void sql_cleanup(void)
 {
     sqlite3_free(sql_error);
     sqlite3_close(_db);
+    _db = NULL;
 }

@@ -14,6 +14,8 @@ CURL *_curl;
 FILE *_cookiejar;
 /** Path on filesystem to cookiejar */
 char* _filename;
+/** Path on filesystem to CA (Certificate Authority) list */
+const char* _capath = NULL;
 
 /** Data to write to server */
 char* _postFields;
@@ -21,6 +23,7 @@ char* _postFields;
 int _postCount;
 
 extern int verbose;
+extern const char* setting_path;
 
 /**
  * Construct URL to request from server.
@@ -40,16 +43,22 @@ const char* internal_geturl(const char* query);
  */
 static size_t internal_curlresponse(void *ptr, size_t size, size_t nmemb, void *stream);
 
+static int internal_capath(void);
+
 int http_init(void)
 {
+    if (internal_capath() == 1) {
+        fprintf(stderr, "Error getting CA Path\n");
+        return 1;
+    }
     _curl = curl_easy_init();
     if (_curl == NULL) {
-        fprintf(stderr, "Error loading cURL lib");
+        fprintf(stderr, "Error loading cURL lib\n");
         return 1;
     }
     _filename = tmpnam(NULL);
     if (_filename == NULL) {
-        fprintf(stderr, "Failed creating temp cookiejar file");
+        fprintf(stderr, "Failed creating temp cookiejar file\n");
         return 1;
     }
     if (verbose) {
@@ -58,7 +67,7 @@ int http_init(void)
     
     _cookiejar = tmpfile();
     if (_cookiejar == NULL) {
-        fprintf(stderr, "Failed creating cookiejar");
+        fprintf(stderr, "Failed creating cookiejar\n");
         return 1;
     }
     return 0;
@@ -69,6 +78,7 @@ void http_cleanup(void)
     curl_easy_cleanup(_curl);
     fclose(_cookiejar);
     free(_filename);
+    free((void*) _capath);
 }
 
 HttpResponse* http_post(const char* query)
@@ -93,6 +103,12 @@ HttpResponse* http_post(const char* query)
     curl_easy_setopt(_curl, CURLOPT_WRITEDATA, response);
     curl_easy_setopt(_curl, CURLOPT_POST, 1L);
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, _postFields);
+
+    // SSL flags
+    curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(_curl, CURLOPT_CAINFO, _capath);
+    curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 2L);
+    curl_easy_setopt(_curl, CURLOPT_SSL_CIPHER_LIST, SSL_CIPHER_LIST);
     
     CURLcode res = curl_easy_perform(_curl);
     free((void*)url);
@@ -134,6 +150,12 @@ HttpResponse* http_get(const char* query)
     curl_easy_setopt(_curl, CURLOPT_COOKIEJAR, _filename);
     curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, internal_curlresponse);
     curl_easy_setopt(_curl, CURLOPT_WRITEDATA, response);
+
+    // SSL flags
+    curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(_curl, CURLOPT_CAINFO, _capath);
+    curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 2L);
+    curl_easy_setopt(_curl, CURLOPT_SSL_CIPHER_LIST, SSL_CIPHER_LIST);
     
     CURLcode res = curl_easy_perform(_curl);
     free((void*)url);
@@ -215,4 +237,21 @@ static size_t internal_curlresponse(void *ptr, size_t size, size_t nmemb, void *
     memcpy((void*)&response->buffer[response->pos], ptr, needed);
     response->pos += needed;
     return needed;
+}
+
+static int internal_capath(void)
+{
+    //setting_path;
+    size_t size = sizeof(char) * (strlen(setting_path) + strlen(PATH_CABUNDLE) + 1);
+    char* path = malloc(size);
+    if (path == NULL) {
+        return 1;
+    }
+    bzero(path, size);
+    
+    strcpy(path, setting_path);
+    strcat(path, PATH_CABUNDLE);
+    
+    _capath = path;
+    return 0;
 }
