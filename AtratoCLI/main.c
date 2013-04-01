@@ -17,6 +17,7 @@
 #include "strutils.h"
 #include "stdin.h"
 #include "env.h"
+#include "table.h"
 
 int verbose = 0;
 const char* setting_path = NULL;
@@ -166,9 +167,6 @@ int main (int argc, const char* argv[])
 
 int internal_find_key(const char* key)
 {
-    if (strcmp(key, "credential_hostname") == 0) {
-        printf("\n");
-    }
     if (
         strcmp(key, "credential_hostname") == 0 ||
         strcmp(key, "credential_website") == 0 ||
@@ -182,7 +180,9 @@ int internal_find_key(const char* key)
 
 int internal_find_value(const char* key, const char* value)
 {
-    if (value == NULL) {
+    return table_analyze(key, value);
+//    return 0;
+    /*if (value == NULL) {
         printf("%-30s", "NULL");
     }
     else {
@@ -193,7 +193,7 @@ int internal_find_value(const char* key, const char* value)
         free(decoded);
     }
     
-    return 0;
+    return 0;*/
 }
 
 static char* internal_db_path(int include_file)
@@ -326,11 +326,13 @@ int internal_store_value(const char* key, const char* value)
 
 static void main_credential_search(const char* search)
 {
-    printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
+    table_init();
+    
+    /*printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
     for (int i = 0; i < 111; i++) {
         printf("-");
     }
-    printf("\n");
+    printf("\n");*/
 
     const char* const path = internal_db_path(1);
     if (db_open(path) == 1) {
@@ -345,7 +347,9 @@ static void main_credential_search(const char* search)
         free((void*) path);        
         return;
     }
-    printf("\n");
+    //printf("\n");
+    table_print(stdout);
+    table_cleanup();
     db_cleanup();
     free((void*) path);    
 }
