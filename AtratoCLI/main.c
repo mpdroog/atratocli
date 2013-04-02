@@ -180,6 +180,9 @@ int internal_find_key(const char* key)
 
 int internal_find_value(const char* key, const char* value)
 {
+    if (value == NULL) {
+        value = "NULL";
+    }
     return table_analyze(key, value);
 //    return 0;
     /*if (value == NULL) {

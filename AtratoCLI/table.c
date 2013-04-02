@@ -25,8 +25,8 @@ typedef struct table_col {
 } table_col;
 
 typedef struct table_values {
-    const char* key;
-    const char* value;
+    char* key;
+    char* value;
     
     struct table_values* next;
 } table_values;
