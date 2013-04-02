@@ -196,9 +196,11 @@ int table_print(FILE* output)
             return 1;
         }
         // Dirty end
-        char* msg = str_substr(0, size, value->value);
+        char* raw = str_replace("\\/", "/", value->value);
+        char* msg = str_substr(0, size, raw);
         fprintf(output, "%-*s", size+1, msg);
         free(msg);
+        free(raw);
         
         value = value->next;
         pos++;
