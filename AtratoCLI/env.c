@@ -21,7 +21,7 @@
 
 extern int verbose;
 
-const char* const env_homedir(void)
+char* env_homedir(void)
 {
     struct passwd *pw = getpwuid(getuid());
     if (pw == NULL) {
@@ -45,9 +45,10 @@ const char* const env_homedir(void)
  *  1 = Path not directtory
  *  2 = Not exist
  */
-int env_isdir(const char* const path)
+int env_isdir(const char* path)
 {
-    struct stat sb = {};
+    struct stat sb;
+    bzero(&sb, sizeof(struct stat));
     int res = stat(path, &sb);
     if (res == -1 && errno == 2) {
         return 2;
@@ -71,10 +72,10 @@ int env_isdir(const char* const path)
  *  1 = Path not regular file
  *  2 = Not exist
  */
-int env_isfile(const char* const path)
+int env_isfile(const char* path)
 {
     struct stat sb;
-    bzero(&sb, sizeof(stat));
+    bzero(&sb, sizeof(struct stat));
     int res = stat(path, &sb);
     if (res == -1 && errno == 2) {
         return 2;
@@ -92,7 +93,7 @@ int env_isfile(const char* const path)
     return 1;
 }
 
-int env_createfolder(const char* const path)
+int env_createfolder(const char* path)
 {
     int status = env_isdir(path);
     if (status == 0) {
@@ -111,7 +112,7 @@ int env_createfolder(const char* const path)
     return 1;
 }
 
-int env_unlink(const char* const path)
+int env_unlink(const char* path)
 {
     int res = unlink(path);
     if (res == 0) {
@@ -130,7 +131,7 @@ int env_unlink(const char* const path)
  * @see http://stackoverflow.com/questions/1196418/getting-a-password-in-c-without-using-getpass-3
  * @see http://www.gnu.org/software/libc/manual/html_node/getpass.html
  */
-size_t env_getpass(char **lineptr, size_t *n, FILE *stream)
+size_t env_getpass(char** lineptr, size_t* n, FILE* stream)
 {
     struct termios old, new;
     ssize_t nread = 0;

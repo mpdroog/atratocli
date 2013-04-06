@@ -13,8 +13,7 @@
 #include "hash.h"
 
 #define API_KEY "b9nIXMpr0AxBVy"
-static int internal_checksalt(char* hash);
-static int internal_request(char* type, char* query);
+static int internal_request(const char* type, const char* query);
 
 static int loginstage = 0;
 static const char* _ldapUser = NULL;
@@ -27,24 +26,7 @@ int api_init(void) {
     return 0;
 }
 
-static int internal_checksalt(char* hash)
-{
-    if (hash == NULL) {
-        fprintf(stderr, "Received no hash from server");
-        http_cleanup();        
-        return 1;
-    }
-    if (strlen(hash) != 32) {
-        free(hash);
-        http_cleanup();        
-        fprintf(stderr, "Received invalid hash from server");
-        return 1;
-    }
-    
-    return 0;
-}
-
-static int internal_request(char* type, char* query)
+static int internal_request(const char* type, const char* query)
 {
     json_init();
     HttpResponse *response = NULL;
@@ -81,8 +63,19 @@ int api_login(const char* ldapUser, const char* ldapPass) {
         return 1;
     }
     char* hash = json_readstring("result");
-    if (internal_checksalt(hash) == 1) {
-        return 1;
+    // Validate hash as MD5
+    {
+        if (hash == NULL) {
+            fprintf(stderr, "Received no hash from server");
+            http_cleanup();        
+            return 1;
+        }
+        if (strlen(hash) != 32) {
+            free(hash);
+            http_cleanup();        
+            fprintf(stderr, "Received invalid hash from server");
+            return 1;
+        }
     }
     
     http_post_add("username", "api@atrato.com");
