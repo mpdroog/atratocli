@@ -10,6 +10,7 @@
 #define AtratoCLI_http_h
 
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <curl/curl.h>

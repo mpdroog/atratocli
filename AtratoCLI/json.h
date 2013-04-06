@@ -10,6 +10,7 @@
 #define AtratoCLI_json_h
 
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <stdio.h>
 
