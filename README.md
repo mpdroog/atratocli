@@ -12,3 +12,7 @@ TODO
 - Datacenter access request?
 - Replace const X* by const X* const where possible
 - Auto setup SSH sessions? http://stackoverflow.com/questions/9602153/bring-process-to-foreground
+
+Compile on Ubuntu
+sudo apt-get install build-essential pkg-config libsqlite3-dev libcurl4-openssl-dev
+make
