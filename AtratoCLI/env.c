@@ -157,6 +157,9 @@ size_t env_getpass(char** lineptr, size_t* n, FILE* stream)
     if (nread == EINVAL) {
         fprintf(stderr, "Invalid argument(s) to getline\n");
     }
+    /* Change last char to \0 because \n is added by getline */
+    char* line = *lineptr;
+    line[ strlen(line)-1 ] = '\0';
     
     /* Restore terminal. */
     if (tcsetattr(fileno(stream), TCSAFLUSH, &old) != 0) {
