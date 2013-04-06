@@ -157,7 +157,4 @@ void api_credential_add(const char* hostname, const char* website, const char* u
 
 void api_cleanup(void) {
     http_cleanup();
-    // No need to free _ldapUser
-    free((void*) _ldapUser);
-    //free((void*)_ldapKey);
 }

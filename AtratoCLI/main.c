@@ -111,6 +111,7 @@ int main (int argc, const char* argv[])
 
     char* username = NULL;
     char* password = NULL;
+    size_t password_length = 0;
     for (;;) {
         if (username == NULL) {
             char* tmpUsername = getenv("USER");
@@ -129,7 +130,9 @@ int main (int argc, const char* argv[])
         }
         fprintf(stdout, "LDAP password for '%s':", username);
         fflush(stdout);
-        password = getpass("");
+        env_getpass(&password, &password_length, stdin);
+        fprintf(stdout, "\n");
+
         if (password == NULL) {
             fprintf(stderr, "Failed reading password\n");
             return 1;
@@ -163,6 +166,8 @@ int main (int argc, const char* argv[])
         fprintf(stdout, "Unsupported command %s::%s\n", class, method);
     }
 
+    free(username);
+    free(password);
     free((void*) setting_path);
     api_cleanup();
     return 0;

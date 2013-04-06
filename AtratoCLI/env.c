@@ -5,7 +5,6 @@
 //  Created by M Droog on 3/28/13.
 //  Copyright 2013 Rootdev Enterprise. All rights reserved.
 //
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +15,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <termios.h>
 
 #include "env.h"
 
@@ -121,4 +121,55 @@ int env_unlink(const char* const path)
         fprintf(stderr, "POSIX Error: %d %s\n", errno, strerror(errno));
     }    
     return 1;
+}
+
+/**
+ * getpass is obsolete (it won't compile with GCC on Ubuntu
+ * without throwing out a warning)
+ * @see http://linux.die.net/man/3/getpass
+ * @see http://stackoverflow.com/questions/1196418/getting-a-password-in-c-without-using-getpass-3
+ * @see http://www.gnu.org/software/libc/manual/html_node/getpass.html
+ */
+size_t env_getpass(char **lineptr, size_t *n, FILE *stream)
+{
+    struct termios old, new;
+    ssize_t nread = 0;
+    
+    /* Turn echoing off and fail if we can't. */
+    if (tcgetattr(fileno (stream), &old) != 0) {
+        if (verbose) {
+            fprintf(stderr, "Failed getting tty\n");
+        }
+        return 0;
+    }
+    new = old;
+    new.c_lflag &= ~ECHO;
+    if (tcsetattr(fileno (stream), TCSAFLUSH, &new) != 0) {
+        if (verbose) {
+            fprintf(stderr, "Failed turning echo off on tty\n");
+        }        
+        return 0;
+    }
+    
+    /* Read the password. */
+    nread = getline(lineptr, n, stream);
+    if (nread == EINVAL) {
+        fprintf(stderr, "Invalid argument(s) to getline\n");
+    }
+    
+    /* Restore terminal. */
+    if (tcsetattr(fileno(stream), TCSAFLUSH, &old) != 0) {
+        if (verbose) {
+            fprintf(stderr, "Failed restoring tty\n");            
+        }
+        return 0;
+    }
+    
+    if (nread < 0) {
+        if (verbose) {
+            fprintf(stderr, "getline returned invalid\n");            
+        }        
+        return 0;
+    }
+    return nread;
 }
