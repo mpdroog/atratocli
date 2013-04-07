@@ -2,7 +2,7 @@
 # AtratoCLI Makefile
 #
 
-PROG		:= atraticli
+PROG		:= aci
 
 DEBUGOPTS	:=
 OBJDIR		:= .obj
@@ -11,7 +11,7 @@ AR		:= ar
 PKGLIBS		:= sqlite3 libcurl
 
 #WARNINGS	:= -Wcast-qual -Wwrite-strings -Wall -Wshadow -Wuninitialized
-CFLAGS		:= `pkg-config --cflags $(PKGLIBS)` $(DEBUGOPTS) $(WARNINGS) -std=c99
+CFLAGS		:= `pkg-config --cflags $(PKGLIBS)` $(DEBUGOPTS) $(WARNINGS) -std=gnu99
 LDFLAGS		:= `pkg-config --libs $(PKGLIBS)`
 
 export PROG PROGLIB CFLAGS LDFLAGS CC AR
