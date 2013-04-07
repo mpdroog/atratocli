@@ -9,18 +9,16 @@
 #include "http.h"
 
 /** cURL Handler */
-static CURL *_curl;
-/** Filepointer where cookies can be stored */
-static FILE *_cookiejar;
+static CURL *_curl = NULL;
 /** Path on filesystem to cookiejar */
-static char* _filename;
+static char* _filename = NULL;
 /** Path on filesystem to CA (Certificate Authority) list */
 static const char* _capath = NULL;
 
 /** Data to write to server */
-static char* _postFields;
+static char* _postFields = NULL;
 /** Amount of fields */
-static int _postCount;
+static int _postCount = 0;
 
 extern int verbose;
 
@@ -60,19 +58,12 @@ int http_init(const char* ca_path)
         printf("Created cookiejar: %s\n", _filename);
     }
     
-    _cookiejar = tmpfile();
-    if (_cookiejar == NULL) {
-        fprintf(stderr, "Failed creating cookiejar\n");
-        return 1;
-    }
     return 0;
 }
 
 void http_cleanup(void)
 {
     curl_easy_cleanup(_curl);
-    fclose(_cookiejar);
-    free(_filename);
 }
 
 HttpResponse* http_post(const char* query)

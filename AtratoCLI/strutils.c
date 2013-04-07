@@ -29,7 +29,6 @@ char *str_substr(int start, int length, const char* subject)
     }
     bzero(sub, required);
     strncpy(sub, subject+start, required-1);
-    sub[required] = '\0';
     return sub;
 }
 

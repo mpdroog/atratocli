@@ -300,7 +300,9 @@ static void main_credential_cache(void)
         fprintf(stderr, "Failed creating settings file\n");
         abort();
     }
-    strcat(path, "at_ccc.db");
+    free(path);
+    path = internal_db_path(1);
+
     if (db_open(path) == 1) {
         free(path);
         fprintf(stderr, "Failed loading cache (SQLDB)\n");
