@@ -100,18 +100,18 @@ static int internal_field_index(const char* key)
     return 0;
 }
 
-int db_credential_find(int (*callback)(void*, int, char**, char**), const char* const query)
+int db_credential_find(int (*callback)(void*, int, char**, char**), const char* query)
 {
     // TODO: Don't use mprintf here..
-    const char *zSQL = sqlite3_mprintf(_query_credential_find, query, query, query);
+    char *zSQL = sqlite3_mprintf(_query_credential_find, query, query, query);
     if (zSQL == NULL) {
         fprintf(stdout, "Failed creating query\n");
         return 1;
     }
     if (sql_exec(callback, zSQL) == 1) {
-        sqlite3_free((void*) zSQL);
+        sqlite3_free(zSQL);
         return 1;
     }
-    sqlite3_free((void*) zSQL);
+    sqlite3_free(zSQL);
     return 0;
 }

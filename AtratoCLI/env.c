@@ -101,7 +101,7 @@ int env_createfolder(const char* path)
         return 0;
     }
     if (status == 2) {
-        if (mkdir(path, 0777) == 0) {
+        if (mkdir(path, S_IRWXU) == 0) {
             fprintf(stdout, "Succesfully created directory: %s\n", path);
             return 0;
         }
@@ -144,7 +144,7 @@ size_t env_getpass(char** lineptr, size_t* n, FILE* stream)
         return 0;
     }
     new = old;
-    new.c_lflag &= ~ECHO;
+    new.c_lflag &= (tcflag_t) ~ECHO;
     if (tcsetattr(fileno (stream), TCSAFLUSH, &new) != 0) {
         if (verbose) {
             fprintf(stderr, "Failed turning echo off on tty\n");
@@ -175,5 +175,5 @@ size_t env_getpass(char** lineptr, size_t* n, FILE* stream)
         }        
         return 0;
     }
-    return nread;
+    return (size_t)nread;
 }

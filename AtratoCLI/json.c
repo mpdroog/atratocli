@@ -7,20 +7,22 @@
 //
 
 #include "json.h"
+#include "global.h"
+
 #define JSON_TOKENS 2048
 
 extern int verbose;
 
-jsmn_parser _parser = {};
+jsmn_parser _parser;
 const char *_lastmsg = NULL;
 jsmntok_t _tokens[JSON_TOKENS];
-const char *_lastkey = NULL;
+char *_lastkey = NULL;
 
-const char* internal_get_string(const jsmntok_t const token);
+char* internal_get_string(const jsmntok_t const token);
 
 void json_init(void) 
 {
-    // TODO: Initialized?
+    bzero(&_parser, sizeof(jsmn_parser));
     jsmn_init(&_parser);
 }
 
@@ -57,7 +59,6 @@ int json_readprimitive(const char *key)
     for (int i = 0; i < JSON_TOKENS; i++) {
         jsmntok_t pos = _tokens[i];
         if (nextmatch == 1 && pos.type == JSMN_PRIMITIVE && pos.start > 0) {
-            //int strsize = pos.end - pos.start;
             char character = *(_lastmsg + pos.start);
             
             if (character == 't') {
@@ -67,7 +68,7 @@ int json_readprimitive(const char *key)
         }
         if (nextmatch == 0 && pos.type == JSMN_STRING && pos.end > 0) {
             // TODO: Duplicate
-            int strsize = pos.end - pos.start;
+            size_t strsize = SAFE_SIZET(pos.end - pos.start);
             char* msg = (char*) malloc(sizeof(char) * (strsize+1));
             if (msg == NULL) {
                 fprintf(stderr, "Failed allocating memory?");
@@ -94,7 +95,7 @@ char* json_readstring(const char *key)
         jsmntok_t pos = _tokens[i];
         if (pos.type == JSMN_STRING && pos.end > 0) {
             // TODO: Duplicate
-            int strsize = pos.end - pos.start;
+            size_t strsize = SAFE_SIZET(pos.end - pos.start);
             char* msg = (char*) malloc(sizeof(char) * (strsize+1));
             if (msg == NULL) {
                 fprintf(stderr, "Failed allocating memory?");
@@ -118,9 +119,9 @@ char* json_readstring(const char *key)
 }
 
 // Allocate and return a stripped out string
-const char* internal_get_string(const jsmntok_t const token)
+char* internal_get_string(const jsmntok_t const token)
 {
-    int strsize = token.end - token.start;
+    size_t strsize = SAFE_SIZET(token.end - token.start);
     char* msg = (char*) malloc(sizeof(char) * (strsize+1));
     if (msg == NULL) {
         fprintf(stderr, "JSON: Malloc failed\n");
@@ -141,11 +142,12 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
     // base element is a stringkey pointing to an array    
     for (begin_index = 0; begin_index < JSON_TOKENS; begin_index++) {
         jsmntok_t token = _tokens[begin_index];
-        jsmntok_t next = {};
+        jsmntok_t next;
+        bzero(&next, sizeof(jsmntok_t));
 
         if (end_offset == 0) {
             if (token.type == JSMN_STRING) {
-                const char* key = internal_get_string(token);
+                char* key = internal_get_string(token);
                 if (strcmp(key, baseName) == 0) {
                     // Found base element
                     begin_index++;
@@ -159,7 +161,11 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
                         return 1;
                     }
                     
-                    end_offset = next.end;
+                    int end = next.end;
+                    if (end < 0) {
+                        return 1;
+                    }
+                    end_offset = (size_t) end;
                     if (verbose) {
                         fprintf(stdout, "JSON: Found end offset at %ld\n", end_offset);
                     }
@@ -167,7 +173,7 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
                     // Stop iteration now we have position
                     break;
                 }
-                free((void*) key);
+                free(key);
             }
         }
     }
@@ -184,7 +190,8 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
     for (size_t i = begin_index; i < JSON_TOKENS; i++) {
         jsmntok_t token = _tokens[i];
         // Check if we can stop processing
-        if (token.start > end_offset) {
+        size_t start = SAFE_SIZET(token.start);
+        if (start > end_offset) {
             break;
         }
         
@@ -196,7 +203,7 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
                     fprintf(stderr, "Key is expected to be String, received something else #%d\n", token.type);
                     return 1;
                 }
-                const char* key = internal_get_string(token);
+                char* key = internal_get_string(token);
                 if (searchFn(key) == 1) {
                     printNext = 1;
                     _lastkey = key;
@@ -208,11 +215,11 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
                     printFn(_lastkey, NULL);
                 }
                 else if (token.type == JSMN_STRING) {
-                    const char* value = internal_get_string(token);
+                    char* value = internal_get_string(token);
                     // TODO: result ignored?
                     printFn(_lastkey, value);
                     _lastkey = NULL;
-                    free((void*) value);
+                    free(value);
                 }
                 else {
                     fprintf(stderr, "Unsupported type #%d\n", token.type);
@@ -220,7 +227,7 @@ int json_array_search(const char* baseName, int(*searchFn)(const char* key), int
                 }
                 
                 // Free the last key
-                free((void*) _lastkey);
+                free(_lastkey);
                 _lastkey = NULL;
             }
             offset++;

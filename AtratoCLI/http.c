@@ -9,21 +9,20 @@
 #include "http.h"
 
 /** cURL Handler */
-CURL *_curl;
+static CURL *_curl;
 /** Filepointer where cookies can be stored */
-FILE *_cookiejar;
+static FILE *_cookiejar;
 /** Path on filesystem to cookiejar */
-char* _filename;
+static char* _filename;
 /** Path on filesystem to CA (Certificate Authority) list */
-const char* _capath = NULL;
+static const char* _capath = NULL;
 
 /** Data to write to server */
-char* _postFields;
+static char* _postFields;
 /** Amount of fields */
-int _postCount;
+static int _postCount;
 
 extern int verbose;
-extern const char* setting_path;
 
 /**
  * Construct URL to request from server.
@@ -32,7 +31,8 @@ extern const char* setting_path;
  * @param const char* query Query to append
  * @return const char* API_URL + query
  */
-const char* internal_geturl(const char* query);
+static char* internal_geturl(const char* query);
+
 /**
  * Read cURL response and migrate to own datastructure.
  * @param void *ptr Memory location to start reading from
@@ -43,14 +43,9 @@ const char* internal_geturl(const char* query);
  */
 static size_t internal_curlresponse(void *ptr, size_t size, size_t nmemb, void *stream);
 
-static int internal_capath(void);
-
-int http_init(void)
+int http_init(const char* ca_path)
 {
-    if (internal_capath() == 1) {
-        fprintf(stderr, "Error getting CA Path\n");
-        return 1;
-    }
+    _capath = ca_path;
     _curl = curl_easy_init();
     if (_curl == NULL) {
         fprintf(stderr, "Error loading cURL lib\n");
@@ -78,19 +73,21 @@ void http_cleanup(void)
     curl_easy_cleanup(_curl);
     fclose(_cookiejar);
     free(_filename);
-    free((void*) _capath);
 }
 
 HttpResponse* http_post(const char* query)
 {
     HttpResponse *response = malloc(sizeof(HttpResponse));
+    if (response == NULL) {
+        return NULL;
+    }
     bzero(response, sizeof(HttpResponse));
 
-    const char *url = internal_geturl(query);
+    char *url = internal_geturl(query);
     if (url == NULL) {
         fprintf(stderr, "Failed getting URL for %s", query);
         free(response);
-        free((void*)url);
+        free(url);
         return NULL;
     }
     if (verbose) {
@@ -136,7 +133,7 @@ HttpResponse* http_get(const char* query)
     HttpResponse *response = malloc(sizeof(HttpResponse));
     bzero(response, sizeof(HttpResponse));
     
-    const char *url = internal_geturl(query);
+    char *url = internal_geturl(query);
     if (url == NULL) {
         free(response);
         return NULL;
@@ -158,7 +155,7 @@ HttpResponse* http_get(const char* query)
     curl_easy_setopt(_curl, CURLOPT_SSL_CIPHER_LIST, SSL_CIPHER_LIST);
     
     CURLcode res = curl_easy_perform(_curl);
-    free((void*)url);
+    free(url);
     if (res != CURLE_OK) {
         fprintf(stderr, "HTTP failed: %s\n", curl_easy_strerror(res));
         free(response);
@@ -200,7 +197,7 @@ void http_post_clear(void)
     bzero((void*)_postFields, sizeof(char)*2096);
 }
 
-const char* internal_geturl(const char* query)
+char* internal_geturl(const char* query)
 {
     if (256 - strlen(query) + strlen(API_URL) < 1) {
         fprintf(stderr, "URL too long!\n");
@@ -237,21 +234,4 @@ static size_t internal_curlresponse(void *ptr, size_t size, size_t nmemb, void *
     memcpy((void*)&response->buffer[response->pos], ptr, needed);
     response->pos += needed;
     return needed;
-}
-
-static int internal_capath(void)
-{
-    //setting_path;
-    size_t size = sizeof(char) * (strlen(setting_path) + strlen(PATH_CABUNDLE) + 1);
-    char* path = malloc(size);
-    if (path == NULL) {
-        return 1;
-    }
-    bzero(path, size);
-    
-    strcpy(path, setting_path);
-    strcat(path, PATH_CABUNDLE);
-    
-    _capath = path;
-    return 0;
 }

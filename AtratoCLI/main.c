@@ -22,13 +22,14 @@
 #include "env.h"
 #include "table.h"
 
+/** Global flag if additional logging is needed */
 int verbose = 0;
-const char* setting_path = NULL;
 
 int internal_find_key(const char* key);
 int internal_find_value(const char* key, const char* value);
 int internal_store_value(const char* key, const char* value);
 int internal_store_key(const char* key);
+// TODO: CONST!!
 int internal_dbfind(void* unused, int argc, char** argv, char** colname);
 
 static void main_credential_add(void);
@@ -36,11 +37,42 @@ static void main_credential_search(const char* search);
 static void main_credential_cache(void);
 static void main_db_init(void);
 static char* internal_db_path(int include_file);
-int main_connect(const char* const username, const char* const password);
+static char* internal_capath(void);
+static int main_connect(const char* username, const char* password);
 
-int main_connect(const char* const username, const char* const password)
+static char* internal_capath(void)
 {
-    if (api_init() != 0) {
+    char* settings = env_homedir();
+    if (settings == NULL) {
+        return NULL;
+    }
+    size_t size = sizeof(char) * (strlen(settings) + strlen(PATH_SETTINGS) + strlen(PATH_CABUNDLE) + 1);
+    char* path = malloc(size);
+    if (path == NULL) {
+        free(settings);        
+        return NULL;
+    }
+    bzero(path, size);
+    
+    strcpy(path, settings);
+    strcat(path, PATH_SETTINGS);
+    strcat(path, PATH_CABUNDLE);
+    
+    if (verbose) {
+        fprintf(stdout, "Resolved CA Path to: %s\n", path);
+    }
+    free(settings);
+    return path;
+}
+
+int main_connect(const char* username, const char* password)
+{
+    char* path = internal_capath();
+    if (path == NULL) {
+        printf("Failed finding ca path\n");
+        return 1;
+    }
+    if (api_init(path) != 0) {
         printf("Failed loading API\n");
         return 1;
     }
@@ -48,6 +80,7 @@ int main_connect(const char* const username, const char* const password)
         return 1;
     }
     printf("Connected\n");
+    // TODO: free path.....
     return 0;
 }
 
@@ -67,7 +100,7 @@ static void internal_help(const char* name)
     fprintf(stdout, "   credential add            Add credential\n");    
 }
 
-int main (int argc, const char* argv[])
+int main (int argc, char* const argv[])
 {    
     const char* class = NULL;
     const char* method = NULL;
@@ -77,7 +110,7 @@ int main (int argc, const char* argv[])
         return 0;
     }
     
-    static struct option long_options[] = {
+    static const struct option long_options[] = {
         {"verbose", no_argument, &verbose, 1},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'}
@@ -85,7 +118,7 @@ int main (int argc, const char* argv[])
     
     int option_index = 0;
     int c = -1;
-    while ((c = getopt_long(argc, (char* const*)argv, "h", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "h", long_options, &option_index)) != -1) {
         switch (c) {
             case 'v':
                 internal_canonical_name();
@@ -112,22 +145,28 @@ int main (int argc, const char* argv[])
     char* username = NULL;
     char* password = NULL;
     size_t password_length = 0;
+
     for (;;) {
+        // On first pass read username from environment
         if (username == NULL) {
-            char* tmpUsername = getenv("USER");
-            username = malloc(sizeof(char) * 200);
+            const char* env_username = getenv("USER");
+            const size_t env_username_len = strlen(env_username);
+            username = malloc(sizeof(char) * env_username_len +1);
             if (username == NULL) {
                 fprintf(stderr, "Failed allocating memory\n");
                 exit(1);
             }
-            strncpy(username, tmpUsername, 200);            
+            bzero(username, sizeof(char) * env_username_len + 1);
+            strncpy(username, env_username, env_username_len);
+
+        // On second pass read username from stdin
         } else {
             char* newuser = stdin_input_read("LDAP username:", 1, NULL, 200);
-            if (username != NULL) {
-                free(username);
-            }
+            free(username);
             username = newuser;
         }
+        
+        // Read password
         fprintf(stdout, "LDAP password for '%s':", username);
         fflush(stdout);
         env_getpass(&password, &password_length, stdin);
@@ -137,19 +176,21 @@ int main (int argc, const char* argv[])
             fprintf(stderr, "Failed reading password\n");
             return 1;
         }
+        
+        // Stop iterating when username+password are there
         if (strlen(password) > 0) {
             break;
         }
         printf("\n");
     }
     
-    setting_path = internal_db_path(0);
+    char* setting_path = internal_db_path(0);
     if (verbose) {
         fprintf(stdout, "Settings folder: %s\n", setting_path);
     }
     if (env_createfolder(setting_path) == 1) {
         fprintf(stderr, "Failed creating settings folder\n");
-        free((void*)setting_path);
+        free(setting_path);
         return 1;
     }    
 
@@ -168,7 +209,7 @@ int main (int argc, const char* argv[])
 
     free(username);
     free(password);
-    free((void*) setting_path);
+    free(setting_path);
     api_cleanup();
     return 0;
 }
@@ -180,7 +221,7 @@ int internal_find_key(const char* key)
         strcmp(key, "credential_website") == 0 ||
         strcmp(key, "credential_username") == 0 ||
         strcmp(key, "credential_value") == 0
-        ) {
+    ) {
         return 1;
     }
     return 0;
@@ -192,24 +233,11 @@ int internal_find_value(const char* key, const char* value)
         value = "NULL";
     }
     return table_analyze(key, value);
-//    return 0;
-    /*if (value == NULL) {
-        printf("%-30s", "NULL");
-    }
-    else {
-        char *decoded = str_replace("\\/", "/", value);
-        char *max = str_substr(0, 28, decoded);
-        printf("%-30s", max);
-        free(max);
-        free(decoded);
-    }
-    
-    return 0;*/
 }
 
 static char* internal_db_path(int include_file)
 {
-    const char* const home = env_homedir();
+    char* home = env_homedir();
     if (home == NULL) {
         fprintf(stderr, "Failed resolving homedir\n");
         abort();
@@ -221,7 +249,7 @@ static char* internal_db_path(int include_file)
     char* path = malloc(size);
     if (path == NULL) {
         fprintf(stderr, "Malloc failed\n");
-        free((void*)home);            
+        free(home);            
         abort();
     }
     bzero(path, size);
@@ -231,29 +259,34 @@ static char* internal_db_path(int include_file)
         strcat(path, PATH_SQLDB);
     }
     
-    free((void*)home);    
+    free(home);    
     return path;
 }
 
 static void main_db_init(void)
 {
-    const char* path_db = internal_db_path(1);
+    char* path_db = internal_db_path(1);
     if (env_isfile(path_db) == 0) {
         if (env_unlink(path_db) == 1) {
             fprintf(stderr, "Failed deleting file %s\n", path_db);
-            return;
+            abort();
         }
     }    
     if (db_open(path_db) == 1) {
+        free(path_db);
         fprintf(stderr, "Failed loading db\n");
-        return ;        
+        abort();
     }
     if (db_init() == 1) {
+        free(path_db);        
         fprintf(stderr, "Failed initializing database\n");
+        abort();
     }
     db_cleanup();
-    fprintf(stdout, "Successfully created database: %s\n", path_db);
-    free((void*) path_db);
+    if (verbose) {
+        fprintf(stdout, "Successfully created database: %s\n", path_db);
+    }
+    free(path_db);
 }
 
 static void main_credential_cache(void)
@@ -265,7 +298,7 @@ static void main_credential_cache(void)
     if (env_createfolder(path) == 1) {
         free(path);
         fprintf(stderr, "Failed creating settings file\n");
-        return ;
+        abort();
     }
     strcat(path, "at_ccc.db");
     if (db_open(path) == 1) {
@@ -339,34 +372,28 @@ static void main_credential_search(const char* search)
 {
     table_init();
     
-    /*printf("%-30s%-30s%-30s%-30s\n", "Hostname", "Website", "Username", "Password");
-    for (int i = 0; i < 111; i++) {
-        printf("-");
-    }
-    printf("\n");*/
-
-    const char* const path = internal_db_path(1);
+    char* path = internal_db_path(1);
     if (db_open(path) == 1) {
         fprintf(stderr, "Failed opening db\n");        
-        free((void*) path);
+        free(path);
         return;
     }
-    //int status = api_credential_search(search, &internal_find_key, &internal_find_value);
     int status = db_credential_find(&internal_dbfind, search);
     if (status == 1) {
         fprintf(stderr, "Failed reading credentials\n");
-        free((void*) path);        
+        free(path);        
         return;
     }
-    //printf("\n");
+    
     table_print(stdout);
     table_cleanup();
     db_cleanup();
-    free((void*) path);    
+    free(path);    
 }
 
 int internal_dbfind(void* unused, int argc, char** argv, char** colname)
 {
+    UNUSED(unused);
     for (int i = 0; i < argc; i++) {
         const char* key = colname[i];
         const char* value = argv[i];
@@ -379,11 +406,11 @@ int internal_dbfind(void* unused, int argc, char** argv, char** colname)
 
 static void main_credential_add(void)
 {
-    const char* hostname = stdin_input_read("Hostname", 1, NULL, 255);
-    const char* website = stdin_input_read("Website", 0, NULL, 255);
-    const char* username = stdin_input_read("Username", 1, NULL, 255);
-    const char* password = stdin_input_read("Password", 1, NULL, 255);
-    const char* comment = stdin_input_read("Comment", 1, NULL, 255);
+    char* hostname = stdin_input_read("Hostname", 1, NULL, 255);
+    char* website = stdin_input_read("Website", 0, NULL, 255);
+    char* username = stdin_input_read("Username", 1, NULL, 255);
+    char* password = stdin_input_read("Password", 1, NULL, 255);
+    char* comment = stdin_input_read("Comment", 1, NULL, 255);
     
     if (hostname == NULL || website == NULL || username == NULL || password == NULL || comment == NULL) {
         goto cleanup;
@@ -391,10 +418,10 @@ static void main_credential_add(void)
     
     api_credential_add(hostname, website, username, password, comment);    
 cleanup:
-    free((void*)hostname);
-    free((void*)website);
-    free((void*)username);
-    free((void*)password);
-    free((void*)comment);    
+    free(hostname);
+    free(website);
+    free(username);
+    free(password);
+    free(comment);    
 }
 

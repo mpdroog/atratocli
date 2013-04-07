@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 static sqlite3* _db = NULL;
-char* sql_error = NULL;
+static char* sql_error = NULL;
 
 extern int verbose;
 
@@ -64,24 +64,24 @@ sql_stmt* sql_statement(const char* query)
     return stmt;
 }
 
-int sql_statement_bind_null(sql_stmt* stmt, const int index)
+int sql_statement_bind_null(sql_stmt* stmt, const int id)
 {
-    int res = sqlite3_bind_null(stmt, index);
+    int res = sqlite3_bind_null(stmt, id);
     if (res != SQLITE_OK) {
         if (verbose) {
-            fprintf(stderr, "SQL: Error binding index %d with NULL\n", index);
+            fprintf(stderr, "SQL: Error binding index %d with NULL\n", id);
         }
         return 1;
     }
     return 0;
 }
 
-int sql_statement_bind_string(sql_stmt* stmt, const int index, const char* value)
+int sql_statement_bind_string(sql_stmt* stmt, const int id, const char* value)
 {
-    int res = sqlite3_bind_text(stmt, index, value, -1, SQLITE_TRANSIENT);
+    int res = sqlite3_bind_text(stmt, id, value, -1, SQLITE_TRANSIENT);
     if (res != SQLITE_OK) {
         if (verbose) {
-            fprintf(stderr, "SQL: Error binding index %d with value %s\n", index, value);
+            fprintf(stderr, "SQL: Error binding index %d with value %s\n", id, value);
         }
         return 1;
     }

@@ -21,7 +21,7 @@
  * Initialize module for HTTP-Requests
  * @return int 0 on success else higher
  */
-int http_init(void);
+int http_init(const char* ca_path);
 /** Cleanup memory/connections for module */
 void http_cleanup(void);
 

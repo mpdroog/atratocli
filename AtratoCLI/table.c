@@ -198,7 +198,15 @@ int table_print(FILE* output)
         }
         // Dirty end
         char* raw = str_replace("\\/", "/", value->value);
+        if (raw == NULL) {
+            fprintf(stderr, "Failed cleaning raw string\n");
+            return 1;
+        }
         char* msg = str_substr(0, size, raw);
+        if (msg == NULL) {
+            fprintf(stderr, "Failed trimming raw string\n");
+            return 1;            
+        }
         fprintf(output, "%-*s", size+1, msg);
         free(msg);
         free(raw);

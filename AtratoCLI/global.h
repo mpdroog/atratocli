@@ -35,4 +35,11 @@ typedef struct HttpResponse HttpResponse;
  */
 #define SSL_CIPHER_LIST "HIGH"
 
+/**
+ * Ignore unused argument(s)
+ * @see http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
+ */
+#define UNUSED(x) (void)(x)
+#define SAFE_SIZET(x) { (x) >= 0 ? (size_t) (x) : 0 }
+
 #endif

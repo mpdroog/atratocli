@@ -16,7 +16,7 @@ void hash_md5init(void)
 }
 void hash_md5add(const char* input)
 {
-    md5_update(&_md5, (unsigned char*)input, strlen(input));
+    md5_update(&_md5, (const unsigned char*)input, strlen(input));
 }
 
 char* hash_md5str(void)

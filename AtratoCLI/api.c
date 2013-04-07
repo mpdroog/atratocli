@@ -19,8 +19,8 @@ static int loginstage = 0;
 static const char* _ldapUser = NULL;
 static const char* _ldapKey = NULL;
 
-int api_init(void) {
-    if (http_init() != 0) {
+int api_init(const char* ca_path) {
+    if (http_init(ca_path) != 0) {
         return 1;
     }
     return 0;
