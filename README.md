@@ -1,7 +1,8 @@
 objc-atratocli
 ==============
 
-Atrato Command Line Interface
+Atrato Command Line Interface.
+A C-implementation for the Atrato Fundamental API.
 
 TODO
 - ~~Make SSL work~~

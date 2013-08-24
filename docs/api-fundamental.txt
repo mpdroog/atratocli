@@ -1,0 +1,229 @@
+Atrato Fundamental API
+ 
+The fundamental api's target {
+        	How it presents itself (self describing),
+        	How it works with data types (xml,json,html),
+        	How it handles errors (404, server error, client data error),
+}
+ 
+Currently Atrato delivers multiple services to the web:
+- Paymentz.nl = Payments API's made easy
+- CDN = Content Delivery Network, storing data over the globe for faster
+customer download speeds
+- Atrato.cc - Customer portal for Atrato
+- Bandwidth.io - Automatic VPS deployment
+ 
+All these systems need an API towards the customer, so logically they all got an API. The only problem now is that they all differ in behaviour, so not one system resembles the other in how you interact with it.
+ 
+General questions: {
+What if you don't want to implement one of the things in this document?
+Throw an error! Anything unsupported should return an error so the developer knows this doesn't work on the given server.
+}
+ 
+What should be exactly the same:
+rules = {
+        	APIs should have same URL design,
+        	APIs should be protocol agnostic,
+Arguments should be processed from both GET and POST,
+        	APIs should be self-explaining,
+        	APIs should be parsable by a machine and human,
+        	APIs should behave the same on error,
+        	APIs should login the same
+}
+ 
+switch (rules) {
+case 'API should have same URL design':
+case 'API should be protocol agnostic':
+We should have 1 starting point for API-requests.
+Example: {domain.ext}/api/
+No arguments: Return html goto 'API should be self-explaining'
+Example: {domain.ext}/api.json/v1/.*
+No arguments: Return JSON goto 'API should be self-explaining'
+Example: {domain.ext}/api.xml/v1/.*
+No arguments: Return XML goto 'API should be self-explaining'
+ 
+I/O should be done using REST:
+{
+        	GET=Read-request
+        	POST=Create-request
+        	PUT=Update-request
+        	DELETE=Delete-request
+}
+Everything valid API call consists of an module/method.
+Example logging in: api.{servicename.com}.json/{version}/auth/login
+Where auth = module and login = method.
+version = explicit set to mention the version of the API
+break;
+ 
+case 'Arguments should be processed from both GET and POST':
+array_merge($_POST, $_GET); Why merge both?
+So the user can test easily in his web browser and can send as POST if he uses an HTTP-client like cURL.
+ 
+On Collision: What should happen if both $_POST and $_GET contain the same key? goto 'APIs should behave the same on error'
+break;
+ 
+case 'API should be self-explaining':
+Implementation example: https://atrato.cc/api.php
+This means that an user can read from the API:
+{
+        	How the basics work (this document user-friendly),
+        	What modules+methods are available,
+        	What arguments he needs,
+        	What is returned,
+        	What errors return
+}
+ 
+How we do this, with the following structure:
+{
+general: {
+        	version: "X.Y",                                                        	<< API version
+        	lastupdate: "2012-10-11T00:00",                      	<< Version released
+        	contact: "developers@atrato.com",                     	<< Contact for feedback
+        	description: "Public API for portal I/O"             	<< API display name
+}
+modules: {
+        	auth: {                                                                                	<< Required module
+                    	help: "Authentication module"    	        	<< Describing purpose
+                    	methods: {
+			GET: {
+				salt: {
+				"help":"Random value to send a password as a key",
+                    				"deprecated":null,
+                    				"conditions":[],
+"arguments":[],
+            "return":{
+            	"help":"Created salt",
+                        "type":"string"
+}
+				}
+}
+                                	POST: {
+login: {                                            	<< Login
+					conditions: {
+						session: false,	<< Login required
+						admin: false,		<< Admin only
+						ratelimit: 10	<< Max 10 req every min from same IP
+					},
+					"deprecated":null,		<< Login NOT deprecated
+                                            		help: "Login description" 	<< Describing purpose
+                                            		arguments: [                      	<< All accepted arguments
+        	                                      	      	user: {                     	<< $_POST or $_GET varname
+                                                                    		"required":true, << Must be sent
+                                                                    		"maxlength":10, << Maximum length
+                                                                    		"minlength":2, << Minimum length
+                                                                    		"email":true,   << Only e-mail is valid
+							“default”:”derp” << (Opt.) If not required a default
+                                                        		}
+                    	                  	  	],
+                                            		return : {                            	<< NULL for nothing
+						“help” : “derpderp”,
+                                            		        	type: {
+session: "XXX"
+}       	
+                                            		}
+				}
+                                	}
+                    	}
+        	}
+}
+}
+ 
+What are the possible argument values?
+required - Argument is required for function to work
+maxlength - Maximum length (in chars)
+minlength - Minimum length (in chars)
+email - Must match e-mail pattern
+emails - Must match e-mail pattern (at least once, multiple allowed)
+positiveInteger - Only allow 0 and higher, no negative values allowed
+boolean - 0 or 1
+decimal - 0.00001 to Infinite
+ 
+What if more arguments are given than accepted by arguments-array? Exception!
+Why? Because allowing 'additional values' can result in clients adding arguments now that in the future might do something that the code doesn't do now.
+break;
+ 
+case 'API should be parsable by a machine and human':
+We support HTML, JSON and XML (depending on what you add in the URL)
+If no argument(s) given in HTML, JSON and XML-form should the documentation be presented in that form.
+So JSON and XML-data should be parsable and usable by a program that knows nothing about the methods, functions, arguments and errors.
+(Atrato Mark: I'm currently working on a C-CLI tool that should parse this and will allow others to 'script' to our API through this executable)
+break;
+ 
+case 'APIs should behave the same on error':
+400 series status codes for client issues & 500 series status codes for server issues
+200 OK
+Response to a successful GET, PUT, PATCH or DELETE. Can also be used for a POST that doesn't result in a creation
+201 Created
+Response to a POST that results in a creation. Should be combined with a Location header pointing to the location of the new resource
+204 No Content
+Response to a successful request that won't be returning a body (like a DELETE request)
+400 Bad Request
+ 
+The request is malformed, such as if the body does not parse
+401 Unauthorized
+When no or invalid authentication details are provided. Also useful to trigger an auth popup if the API is used from a browser
+403 Forbidden
+ 
+When authentication succeeded but authenticated user doesn't have access to the resource
+404 Not Found
+When a non-existent resource is requested
+405 Method Not Allowed
+When an HTTP PUT/POST/PATCH/GET isn't supported for the given module+method
+410 Gone
+ 
+Indicates that the resource at this end point is no longer available. Useful as a blanket response for old API versions
+422 Unprocessable Entity
+Used for validation errors
+429 Too Many Requests
+When a request is rejected due to rate limiting
+500 Internal server error
+Server error.
+ 
+What is HTTP Patch?
+The existing 'HTTP PUT' method only allows a complete replacement of a document. PATCH allows to modify an existing HTTP resource.
+ (http://tools.ietf.org/html/rfc5789)
+ 
+201 Created - What if no Location is available?
+Only add when available
+ 
+In case an 400 or 500 HTTP status occurs an additional error structure of data must be added:
+{
+code : 00001,                                                         	<< So the error is searchable in a DB
+message: "Unexpected error",
+description: "You found a bug in our API, sorry for that. I've reported it to a dev, he'll contact you"
+}
+break;
+ 
+case 'APIs should login the same':
+All APIs should implement the auth-module and it's login and hash methods.
+ 
+>> POST/PUT/PATCH/DELETE auth/*
+<< 405 {code: 00001, message: "Unsupported method", description: "Given path /auth/X does not support method Y"}
+ 
+>> GET auth/hash
+<< GET auth/hash {salt: "randomsomething"}
+ 
+>> GET auth/login {username: "name@domain.com", key: MD5(password+salthash)}
+<< GET auth/login {success: true, "session":SESSIONID()}
+
+case ‘Pagination sorting and fields’:
+	API’s should implement functionalities to paginate and sort data and allow users to select certain fields only. These optional settings can be supplied with the following GET parameters:
+pagination:
+page-size = 50 // the amount of items on a page, default value = 50, if page-number is not set all items will be returned
+page-position = 1 // the page number
+return headers:
+X-Page-Total = 5 // number of total pages
+X-Record-Count = 243 // number of total records
+
+sorting:
+sort[fieldname1]=asc|desc&sort[fieldname2]=asc|desc&sort[fieldname3]=asc|desc // a plus is indicating ascending sorting, minus for descending, multiple fields are separated by a comma.
+fields:
+field[fieldname1]=&field[fieldname2]=derp&field[ieldname3]=value // a comma separated list with the fields to return. An extra filter may be supplied by assigning a value to the field (fieldname3=value) means fieldname3 must equal ‘value’.
+
+
+What this document does not dictate:
+- Testing server
+
+External sources:
+http://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
+https://stripe.com/docs/api/curl#intro
