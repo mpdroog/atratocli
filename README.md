@@ -1,6 +1,8 @@
 objc-atratocli
 ==============
 
+> Deprecated.
+
 Atrato Command Line Interface.
 A C-implementation for the Atrato Fundamental API.
 
